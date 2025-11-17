@@ -16,7 +16,14 @@ enum _ContextMenuAction {
 }
 
 class TrafficListView extends StatefulWidget {
-  const TrafficListView({super.key});
+  final Function(TrafficItem) onItemTap;
+  final Function(TrafficItem) onItemDoubleTap;
+
+  const TrafficListView({
+    super.key,
+    required this.onItemTap,
+    required this.onItemDoubleTap,
+  });
 
   @override
   State<TrafficListView> createState() => _TrafficListViewState();
@@ -91,6 +98,8 @@ class _TrafficListViewState extends State<TrafficListView> {
             if (details.rowColumnIndex.rowIndex == 0) return; // Header tap
             final int tappedIndex = details.rowColumnIndex.rowIndex - 1;
             final tappedRow = _trafficDataSource.rows[tappedIndex];
+            final tappedItem = _trafficDataSource.trafficData[tappedIndex];
+            widget.onItemTap(tappedItem);
 
             if (_isShiftPressed) {
               if (_lastSelectedIndex != -1) {
@@ -111,6 +120,13 @@ class _TrafficListViewState extends State<TrafficListView> {
               _dataGridController.selectedRows = [tappedRow];
             }
             _lastSelectedIndex = tappedIndex;
+          },
+          onCellDoubleTap: (details) {
+            if (details.rowColumnIndex.rowIndex > 0) {
+              final int tappedIndex = details.rowColumnIndex.rowIndex - 1;
+              final tappedItem = _trafficDataSource.trafficData[tappedIndex];
+              widget.onItemDoubleTap(tappedItem);
+            }
           },
           onCellSecondaryTap: (details) {
             if (details.rowColumnIndex.rowIndex > 0) {
