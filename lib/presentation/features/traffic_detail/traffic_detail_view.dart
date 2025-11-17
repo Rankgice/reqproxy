@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:reqproxy/core/models/traffic_item.dart';
+import 'package:reqproxy/presentation/widgets/split_view.dart';
 
 class TrafficDetailView extends StatelessWidget {
   final TrafficItem trafficItem;
@@ -54,15 +55,32 @@ class TrafficDetailView extends StatelessWidget {
   }
 
   Widget _buildBody() {
+    return SplitView(
+      top: _buildRequestSection(),
+      bottom: _buildResponseSection(),
+      initialRatio: 0.4,
+    );
+  }
+
+  Widget _buildRequestSection() {
     return DefaultTabController(
-      length: 2,
+      length: 5,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+            child: Text('Request', style: TextStyle(color: Colors.grey[400])),
+          ),
           const TabBar(
             tabs: [
-              Tab(text: 'Request'),
-              Tab(text: 'Response'),
+              Tab(text: '总览'),
+              Tab(text: '原始'),
+              Tab(text: '参数'),
+              Tab(text: '请求头'),
+              Tab(text: '请求体'),
             ],
+            isScrollable: true,
             indicatorColor: Colors.yellow,
             labelColor: Colors.yellow,
             unselectedLabelColor: Colors.white70,
@@ -70,35 +88,9 @@ class TrafficDetailView extends StatelessWidget {
           Expanded(
             child: TabBarView(
               children: [
-                _buildRequestSection(),
-                _buildResponseSection(),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRequestSection() {
-    return DefaultTabController(
-      length: 4,
-      child: Column(
-        children: [
-          const TabBar(
-            tabs: [
-              Tab(text: 'Overview'),
-              Tab(text: 'Raw'),
-              Tab(text: 'Headers'),
-              Tab(text: 'Body'),
-            ],
-            isScrollable: true,
-          ),
-          Expanded(
-            child: TabBarView(
-              children: [
                 Container(child: const Center(child: Text('Request Overview'))),
                 Container(child: const Center(child: Text('Request Raw'))),
+                Container(child: const Center(child: Text('Request Params'))),
                 Container(child: const Center(child: Text('Request Headers'))),
                 Container(child: const Center(child: Text('Request Body'))),
               ],
@@ -111,22 +103,28 @@ class TrafficDetailView extends StatelessWidget {
 
   Widget _buildResponseSection() {
     return DefaultTabController(
-      length: 4,
+      length: 3,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+            child: Text('Response', style: TextStyle(color: Colors.grey[400])),
+          ),
           const TabBar(
             tabs: [
-              Tab(text: 'Overview'),
-              Tab(text: 'Raw'),
-              Tab(text: 'Headers'),
-              Tab(text: 'Body'),
+              Tab(text: '原始'),
+              Tab(text: '响应头'),
+              Tab(text: '响应体'),
             ],
             isScrollable: true,
+            indicatorColor: Colors.yellow,
+            labelColor: Colors.yellow,
+            unselectedLabelColor: Colors.white70,
           ),
           Expanded(
             child: TabBarView(
               children: [
-                Container(child: const Center(child: Text('Response Overview'))),
                 Container(child: const Center(child: Text('Response Raw'))),
                 Container(child: const Center(child: Text('Response Headers'))),
                 Container(child: const Center(child: Text('Response Body'))),

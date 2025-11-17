@@ -4,7 +4,6 @@ import 'package:reqproxy/presentation/features/status/proxy_status_bar.dart';
 import 'package:reqproxy/presentation/features/session/session_tab_bar.dart';
 import 'package:reqproxy/presentation/features/filter/filter_bar.dart';
 import 'package:reqproxy/core/models/traffic_item.dart';
-import 'package:reqproxy/presentation/widgets/split_view.dart';
 import 'package:reqproxy/presentation/features/traffic_list/traffic_list_view.dart';
 import 'package:reqproxy/presentation/features/traffic_detail/traffic_detail_view.dart';
 import 'package:reqproxy/presentation/features/status/bottom_status_bar.dart';
@@ -19,6 +18,9 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   TrafficItem? _detailedTrafficItem;
+  double _detailViewWidth = 450;
+  final double _minDetailViewWidth = 300;
+  final double _maxDetailViewWidthFraction = 0.8;
 
   void _handleItemSelection(TrafficItem item) {
     if (_detailedTrafficItem != null) {
@@ -61,22 +63,55 @@ class _MainPageState extends State<MainPage> {
                       const SessionTabBar(),
                       const FilterBar(),
                       Expanded(
-                        child: _detailedTrafficItem == null
-                            ? TrafficListView(
-                                onItemTap: _handleItemSelection,
-                                onItemDoubleTap: _handleItemDoubleClick,
-                              )
-                            : SplitView(
-                                top: TrafficListView(
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            return Stack(
+                              children: [
+                                TrafficListView(
                                   onItemTap: _handleItemSelection,
                                   onItemDoubleTap: _handleItemDoubleClick,
                                 ),
-                                bottom: TrafficDetailView(
-                                  trafficItem: _detailedTrafficItem!,
-                                  onClose: _closeDetailView,
-                                ),
-                                initialRatio: 0.5,
-                              ),
+                                if (_detailedTrafficItem != null)
+                                  Positioned(
+                                    right: 0,
+                                    top: 0,
+                                    bottom: 0,
+                                    width: _detailViewWidth,
+                                    child: TrafficDetailView(
+                                      trafficItem: _detailedTrafficItem!,
+                                      onClose: _closeDetailView,
+                                    ),
+                                  ),
+                                if (_detailedTrafficItem != null)
+                                  Positioned(
+                                    right: _detailViewWidth - 4,
+                                    top: 0,
+                                    bottom: 0,
+                                    width: 8,
+                                    child: GestureDetector(
+                                      onHorizontalDragUpdate: (details) {
+                                        setState(() {
+                                          final newWidth = _detailViewWidth - details.delta.dx;
+                                          final maxWidth = constraints.maxWidth * _maxDetailViewWidthFraction;
+                                          if (newWidth > _minDetailViewWidth && newWidth < maxWidth) {
+                                            _detailViewWidth = newWidth;
+                                          }
+                                        });
+                                      },
+                                      child: const MouseRegion(
+                                        cursor: SystemMouseCursors.resizeLeftRight,
+                                        child: VerticalDivider(
+                                          width: 8,
+                                          thickness: 1,
+                                          color: Colors.black54,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            );
+                          },
+                        ),
                       ),
                     ],
                   ),
