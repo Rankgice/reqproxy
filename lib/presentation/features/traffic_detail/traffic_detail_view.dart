@@ -68,22 +68,22 @@ class TrafficDetailView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-            child: Text('Request', style: TextStyle(color: Colors.grey[400])),
-          ),
-          const TabBar(
-            tabs: [
-              Tab(text: '总览'),
-              Tab(text: '原始'),
-              Tab(text: '参数'),
-              Tab(text: '请求头'),
-              Tab(text: '请求体'),
-            ],
-            isScrollable: true,
-            indicatorColor: Colors.yellow,
-            labelColor: Colors.yellow,
-            unselectedLabelColor: Colors.white70,
+          Container(
+            height: 49,
+            child: const TabBar(
+              tabs: [
+                Tab(text: '总览'),
+                Tab(text: '原始'),
+                Tab(text: '参数'),
+                Tab(text: '请求头'),
+                Tab(text: '请求体'),
+              ],
+              isScrollable: true,
+              tabAlignment: TabAlignment.start,
+              indicatorColor: Colors.yellow,
+              labelColor: Color(0xFFDFDFE0),
+              unselectedLabelColor: Colors.white70,
+            ),
           ),
           Expanded(
             child: TabBarView(
@@ -107,20 +107,20 @@ class TrafficDetailView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-            child: Text('Response', style: TextStyle(color: Colors.grey[400])),
-          ),
-          const TabBar(
-            tabs: [
-              Tab(text: '原始'),
-              Tab(text: '响应头'),
-              Tab(text: '响应体'),
-            ],
-            isScrollable: true,
-            indicatorColor: Colors.yellow,
-            labelColor: Colors.yellow,
-            unselectedLabelColor: Colors.white70,
+          Container(
+            height: 49,
+            child: const TabBar(
+              tabs: [
+                Tab(text: '原始'),
+                Tab(text: '响应头'),
+                Tab(text: '响应体'),
+              ],
+               isScrollable: true,
+              tabAlignment: TabAlignment.start,
+              indicatorColor: Colors.yellow,
+              labelColor: Color(0xFFDFDFE0),
+              unselectedLabelColor: Colors.white70,
+            ),
           ),
           Expanded(
             child: TabBarView(
