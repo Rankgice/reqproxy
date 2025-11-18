@@ -3,17 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:reqproxy/core/models/traffic_item.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
-
-enum _ContextMenuAction {
-  copyUrl,
-  copyAsCurl,
-  saveResponse,
-  saveResponseBody,
-  repeatRequest,
-  repeatEditRequest,
-  remove,
-  clear
-}
+import 'package:context_menus/context_menus.dart';
+import 'package:reqproxy/presentation/widgets/traffic_context_menu.dart';
 
 class TrafficListView extends StatefulWidget {
   final Function(TrafficItem) onItemTap;
@@ -78,64 +69,61 @@ class _TrafficListViewState extends State<TrafficListView> {
 
   @override
   Widget build(BuildContext context) {
-    return RawKeyboardListener(
-      focusNode: _focusNode,
-      onKey: (event) {
-        setState(() {
-          _isCtrlPressed = event.isControlPressed;
-          _isShiftPressed = event.isShiftPressed;
-        });
-      },
-      child: SfDataGridTheme(
-        data: SfDataGridThemeData(
-          selectionColor: Colors.yellow.withOpacity(0.5),
-        ),
-        child: SfDataGrid(
-          source: _trafficDataSource,
-          controller: _dataGridController,
-          selectionMode: SelectionMode.multiple,
-          onCellTap: (details) {
-            if (details.rowColumnIndex.rowIndex == 0) return; // Header tap
-            final int tappedIndex = details.rowColumnIndex.rowIndex - 1;
-            final tappedRow = _trafficDataSource.rows[tappedIndex];
-            final tappedItem = _trafficDataSource.trafficData[tappedIndex];
-            widget.onItemTap(tappedItem);
+    return ContextMenuRegion(
+      contextMenu: const TrafficContextMenu(),
+      child: RawKeyboardListener(
+        focusNode: _focusNode,
+        onKey: (event) {
+          setState(() {
+            _isCtrlPressed = event.isControlPressed;
+            _isShiftPressed = event.isShiftPressed;
+          });
+        },
+        child: SfDataGridTheme(
+          data: SfDataGridThemeData(
+            selectionColor: Colors.yellow.withOpacity(0.5),
+          ),
+          child: SfDataGrid(
+            source: _trafficDataSource,
+            controller: _dataGridController,
+            selectionMode: SelectionMode.multiple,
+            onCellTap: (details) {
+              if (details.rowColumnIndex.rowIndex == 0) return; // Header tap
+              final int tappedIndex = details.rowColumnIndex.rowIndex - 1;
+              final tappedRow = _trafficDataSource.rows[tappedIndex];
+              final tappedItem = _trafficDataSource.trafficData[tappedIndex];
+              widget.onItemTap(tappedItem);
 
-            if (_isShiftPressed) {
-              if (_lastSelectedIndex != -1) {
-                final int start = tappedIndex < _lastSelectedIndex ? tappedIndex : _lastSelectedIndex;
-                final int end = tappedIndex > _lastSelectedIndex ? tappedIndex : _lastSelectedIndex;
-                final List<DataGridRow> range = _trafficDataSource.rows.sublist(start, end + 1);
-                _dataGridController.selectedRows = range;
+              if (_isShiftPressed) {
+                if (_lastSelectedIndex != -1) {
+                  final int start = tappedIndex < _lastSelectedIndex ? tappedIndex : _lastSelectedIndex;
+                  final int end = tappedIndex > _lastSelectedIndex ? tappedIndex : _lastSelectedIndex;
+                  final List<DataGridRow> range = _trafficDataSource.rows.sublist(start, end + 1);
+                  _dataGridController.selectedRows = range;
+                } else {
+                  _dataGridController.selectedRows = [tappedRow];
+                }
+              } else if (_isCtrlPressed) {
+                if (_dataGridController.selectedRows.contains(tappedRow)) {
+                  _dataGridController.selectedRows.remove(tappedRow);
+                } else {
+                  _dataGridController.selectedRows.add(tappedRow);
+                }
               } else {
                 _dataGridController.selectedRows = [tappedRow];
               }
-            } else if (_isCtrlPressed) {
-              if (_dataGridController.selectedRows.contains(tappedRow)) {
-                _dataGridController.selectedRows.remove(tappedRow);
-              } else {
-                _dataGridController.selectedRows.add(tappedRow);
+              _lastSelectedIndex = tappedIndex;
+            },
+            onCellDoubleTap: (details) {
+              if (details.rowColumnIndex.rowIndex > 0) {
+                final int tappedIndex = details.rowColumnIndex.rowIndex - 1;
+                final tappedItem = _trafficDataSource.trafficData[tappedIndex];
+                widget.onItemDoubleTap(tappedItem);
               }
-            } else {
-              _dataGridController.selectedRows = [tappedRow];
-            }
-            _lastSelectedIndex = tappedIndex;
-          },
-          onCellDoubleTap: (details) {
-            if (details.rowColumnIndex.rowIndex > 0) {
-              final int tappedIndex = details.rowColumnIndex.rowIndex - 1;
-              final tappedItem = _trafficDataSource.trafficData[tappedIndex];
-              widget.onItemDoubleTap(tappedItem);
-            }
-          },
-          onCellSecondaryTap: (details) {
-            if (details.rowColumnIndex.rowIndex > 0) {
-              _showContextMenu(context, details.globalPosition, details.rowColumnIndex.rowIndex - 1);
-            }
-          },
-          headerRowHeight: 45,
-          rowHeight: 37,
-          allowColumnsResizing: true,
+            },
+            headerRowHeight: 45,
+            rowHeight: 37,
+            allowColumnsResizing: true,
           gridLinesVisibility: GridLinesVisibility.none,
           headerGridLinesVisibility: GridLinesVisibility.vertical,
           onColumnResizeUpdate: (ColumnResizeUpdateDetails details) {
@@ -211,79 +199,6 @@ class _TrafficListViewState extends State<TrafficListView> {
         ),
       ),
     );
-  }
-
-  void _showContextMenu(BuildContext context, Offset position, int rowIndex) async {
-    final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
-    final TrafficItem trafficItem = _trafficDataSource.trafficData[rowIndex];
-
-    final result = await showMenu<_ContextMenuAction>(
-      context: context,
-      position: RelativeRect.fromRect(
-        position & const Size(40, 40), // smaller rect, the touch area
-        Offset.zero & overlay.size, // Bigger rect, the entire screen
-      ),
-      items: <PopupMenuEntry<_ContextMenuAction>>[
-        const PopupMenuItem(value: _ContextMenuAction.copyUrl, child: Text('Copy URL')),
-        const PopupMenuItem(value: _ContextMenuAction.copyAsCurl, child: Text('Copy as cURL')),
-        const PopupMenuDivider(),
-        const PopupMenuItem(value: _ContextMenuAction.saveResponse, child: Text('Save Response')),
-        const PopupMenuItem(value: _ContextMenuAction.saveResponseBody, child: Text('Save Response Body')),
-        const PopupMenuDivider(),
-        const PopupMenuItem(value: _ContextMenuAction.repeatRequest, child: Text('Repeat Request')),
-        const PopupMenuItem(value: _ContextMenuAction.repeatEditRequest, child: Text('Repeat & Edit Request')),
-        const PopupMenuDivider(),
-        const PopupMenuItem(value: _ContextMenuAction.remove, child: Text('Remove')),
-        const PopupMenuItem(value: _ContextMenuAction.clear, child: Text('Clear')),
-      ],
-    );
-
-    if (result == null) return;
-
-    switch (result) {
-      case _ContextMenuAction.copyUrl:
-        await Clipboard.setData(ClipboardData(text: trafficItem.url));
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('URL copied to clipboard'),
-              duration: Duration(seconds: 2),
-            ),
-          );
-        }
-        break;
-      case _ContextMenuAction.copyAsCurl:
-        final curlCommand = _buildCurlCommand(trafficItem);
-        await Clipboard.setData(ClipboardData(text: curlCommand));
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('cURL command copied to clipboard'),
-              duration: Duration(seconds: 2),
-            ),
-          );
-        }
-        break;
-      default:
-      // TODO: Implement other actions
-    }
-  }
-
-  String _buildCurlCommand(TrafficItem item) {
-    final buffer = StringBuffer();
-    buffer.write('curl "${item.url}"');
-    buffer.write(' -X ${item.method.name.toUpperCase()}');
-
-    item.requestHeaders.forEach((key, value) {
-      buffer.write(' -H "$key: $value"');
-    });
-
-    // TODO: Add request body when available in TrafficItem model
-    // if (item.requestBody != null && item.requestBody.isNotEmpty) {
-    //   buffer.write(' --data-binary @- <<EOF\n${item.requestBody}\nEOF');
-    // }
-
-    return buffer.toString();
   }
 
   List<TrafficItem> _getDummyData() {
