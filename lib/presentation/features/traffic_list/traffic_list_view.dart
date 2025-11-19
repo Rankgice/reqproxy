@@ -55,6 +55,7 @@ class _TrafficListViewState extends State<TrafficListView> {
     super.initState();
     _trafficDataSource = TrafficDataSource(trafficData: _getDummyData());
     _dataGridController = DataGridController();
+    _dataGridController.addListener(_updateState);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(_focusNode);
     });
@@ -63,67 +64,123 @@ class _TrafficListViewState extends State<TrafficListView> {
   @override
   void dispose() {
     _focusNode.dispose();
+    _dataGridController.removeListener(_updateState);
     _dataGridController.dispose();
     super.dispose();
   }
 
+  void _updateState() {
+    setState(() {});
+  }
+
+  void _deleteItems(List<TrafficItem> itemsToDelete) {
+    setState(() {
+      final currentData = _trafficDataSource.trafficData;
+      currentData.removeWhere((item) => itemsToDelete.contains(item));
+      _trafficDataSource = TrafficDataSource(trafficData: currentData);
+      _dataGridController.selectedRows.clear();
+    });
+  }
+
+  void _showContextMenu(BuildContext context, Offset position, List<TrafficItem> selectedItems) {
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    showMenu(
+      context: context,
+      position: RelativeRect.fromRect(
+        position & const Size(1, 1),
+        Offset.zero & overlay.size,
+      ),
+      items: [
+        PopupMenuItem(
+          child: TrafficContextMenu(
+            selectedItems: selectedItems,
+            onDelete: _deleteItems,
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return ContextMenuRegion(
-      contextMenu: const TrafficContextMenu(),
-      child: RawKeyboardListener(
-        focusNode: _focusNode,
-        onKey: (event) {
-          setState(() {
-            _isCtrlPressed = event.isControlPressed;
-            _isShiftPressed = event.isShiftPressed;
-          });
-        },
-        child: SfDataGridTheme(
-          data: SfDataGridThemeData(
-            selectionColor: Colors.yellow.withOpacity(0.5),
-          ),
-          child: SfDataGrid(
-            source: _trafficDataSource,
-            controller: _dataGridController,
-            selectionMode: SelectionMode.multiple,
-            onCellTap: (details) {
-              if (details.rowColumnIndex.rowIndex == 0) return; // Header tap
-              final int tappedIndex = details.rowColumnIndex.rowIndex - 1;
-              final tappedRow = _trafficDataSource.rows[tappedIndex];
-              final tappedItem = _trafficDataSource.trafficData[tappedIndex];
-              widget.onItemTap(tappedItem);
+    return RawKeyboardListener(
+      focusNode: _focusNode,
+      onKey: (event) {
+        setState(() {
+          _isCtrlPressed = event.isControlPressed;
+          _isShiftPressed = event.isShiftPressed;
+        });
+      },
+      child: SfDataGridTheme(
+        data: SfDataGridThemeData(
+          selectionColor: Colors.yellow.withOpacity(0.5),
+        ),
+        child: SfDataGrid(
+          source: _trafficDataSource,
+          controller: _dataGridController,
+          selectionMode: SelectionMode.multiple,
+          onCellTap: (details) {
+            if (details.rowColumnIndex.rowIndex == 0) return; // Header tap
+            final int tappedIndex = details.rowColumnIndex.rowIndex - 1;
+            final tappedRow = _trafficDataSource.rows[tappedIndex];
+            final tappedItem = _trafficDataSource.trafficData[tappedIndex];
+            widget.onItemTap(tappedItem);
 
-              if (_isShiftPressed) {
-                if (_lastSelectedIndex != -1) {
-                  final int start = tappedIndex < _lastSelectedIndex ? tappedIndex : _lastSelectedIndex;
-                  final int end = tappedIndex > _lastSelectedIndex ? tappedIndex : _lastSelectedIndex;
-                  final List<DataGridRow> range = _trafficDataSource.rows.sublist(start, end + 1);
-                  _dataGridController.selectedRows = range;
-                } else {
-                  _dataGridController.selectedRows = [tappedRow];
-                }
-              } else if (_isCtrlPressed) {
-                if (_dataGridController.selectedRows.contains(tappedRow)) {
-                  _dataGridController.selectedRows.remove(tappedRow);
-                } else {
-                  _dataGridController.selectedRows.add(tappedRow);
-                }
+            if (_isShiftPressed) {
+              if (_lastSelectedIndex != -1) {
+                final int start = tappedIndex < _lastSelectedIndex ? tappedIndex : _lastSelectedIndex;
+                final int end = tappedIndex > _lastSelectedIndex ? tappedIndex : _lastSelectedIndex;
+                final List<DataGridRow> range = _trafficDataSource.rows.sublist(start, end + 1);
+                _dataGridController.selectedRows = range;
               } else {
                 _dataGridController.selectedRows = [tappedRow];
               }
-              _lastSelectedIndex = tappedIndex;
-            },
-            onCellDoubleTap: (details) {
-              if (details.rowColumnIndex.rowIndex > 0) {
-                final int tappedIndex = details.rowColumnIndex.rowIndex - 1;
-                final tappedItem = _trafficDataSource.trafficData[tappedIndex];
-                widget.onItemDoubleTap(tappedItem);
+            } else if (_isCtrlPressed) {
+              if (_dataGridController.selectedRows.contains(tappedRow)) {
+                _dataGridController.selectedRows.remove(tappedRow);
+              } else {
+                _dataGridController.selectedRows.add(tappedRow);
               }
-            },
-            headerRowHeight: 45,
-            rowHeight: 37,
-            allowColumnsResizing: true,
+            } else {
+              _dataGridController.selectedRows = [tappedRow];
+            }
+            _lastSelectedIndex = tappedIndex;
+          },
+          onCellDoubleTap: (details) {
+            if (details.rowColumnIndex.rowIndex > 0) {
+              final int tappedIndex = details.rowColumnIndex.rowIndex - 1;
+              final tappedItem = _trafficDataSource.trafficData[tappedIndex];
+              widget.onItemDoubleTap(tappedItem);
+            }
+          },
+          onCellSecondaryTap: (details) {
+            if (details.rowColumnIndex.rowIndex > 0) {
+              final int tappedIndex = details.rowColumnIndex.rowIndex - 1;
+              final tappedRow = _trafficDataSource.rows[tappedIndex];
+
+              if (!_dataGridController.selectedRows.contains(tappedRow)) {
+                _dataGridController.selectedRows = [tappedRow];
+                _lastSelectedIndex = tappedIndex;
+              }
+
+              final selectedItems = _dataGridController.selectedRows.map((dataGridRow) {
+                final rowIndex = _trafficDataSource.rows.indexOf(dataGridRow);
+                if (rowIndex != -1) {
+                  return _trafficDataSource.trafficData[rowIndex];
+                }
+                return null;
+              }).where((item) => item != null).cast<TrafficItem>().toList();
+
+              _showContextMenu(
+                context,
+                details.globalPosition,
+                selectedItems,
+              );
+            }
+          },
+          headerRowHeight: 45,
+          rowHeight: 37,
+          allowColumnsResizing: true,
           gridLinesVisibility: GridLinesVisibility.none,
           headerGridLinesVisibility: GridLinesVisibility.vertical,
           onColumnResizeUpdate: (ColumnResizeUpdateDetails details) {

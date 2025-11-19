@@ -1,16 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:context_menus/context_menus.dart';
+import 'package:flutter/services.dart';
+import 'package:reqproxy/core/models/traffic_item.dart';
 
 class TrafficContextMenu extends StatefulWidget {
-  const TrafficContextMenu({super.key});
+  final List<TrafficItem> selectedItems;
+  final Function(List<TrafficItem>) onDelete;
+  const TrafficContextMenu({super.key, required this.selectedItems, required this.onDelete});
 
   @override
   State<TrafficContextMenu> createState() => _TrafficContextMenuState();
 }
 
 class _TrafficContextMenuState extends State<TrafficContextMenu> with ContextMenuStateMixin {
+  void _copy(String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    // TODO: Find the correct way to close the context menu.
+    // close(); 
+  }
+
   @override
   Widget build(BuildContext context) {
+    final firstItem = widget.selectedItems.isNotEmpty ? widget.selectedItems.first : null;
+    final bool canCopy = firstItem != null;
+
     return cardBuilder.call(
       context,
       [
@@ -18,15 +31,34 @@ class _TrafficContextMenuState extends State<TrafficContextMenu> with ContextMen
           context,
           ContextMenuButtonConfig(
             '复制cURL',
-            onPressed: () => handlePressed(context, () {}),
+            onPressed: !canCopy
+                ? null
+                : () => handlePressed(context, () {
+                      // TODO: Implement cURL generation
+                      _copy('curl "${firstItem.url}"');
+                    }),
             shortcutLabel: 'Ctrl+Shift+C',
           ),
         ),
         SubmenuButton(
           menuChildren: <Widget>[
-            buttonBuilder.call(context, ContextMenuButtonConfig('URL', onPressed: () => handlePressed(context, () {}))),
-            buttonBuilder.call(context, ContextMenuButtonConfig('Host', onPressed: () => handlePressed(context, () {}))),
-            buttonBuilder.call(context, ContextMenuButtonConfig('Body', onPressed: () => handlePressed(context, () {}))),
+            buttonBuilder.call(
+                context,
+                ContextMenuButtonConfig('URL',
+                    onPressed: !canCopy ? null : () => handlePressed(context, () => _copy(firstItem.url)))),
+            buttonBuilder.call(
+                context,
+                ContextMenuButtonConfig('Host',
+                    onPressed: !canCopy ? null : () => handlePressed(context, () => _copy(firstItem.uri.host)))),
+            buttonBuilder.call(
+                context,
+                ContextMenuButtonConfig('Body',
+                    onPressed: !canCopy
+                        ? null
+                        : () => handlePressed(context, () {
+                              // TODO: Implement body copy
+                              _copy('Body not implemented yet');
+                            }))),
           ],
           child: const Text('复制'),
         ),
@@ -69,7 +101,9 @@ class _TrafficContextMenuState extends State<TrafficContextMenu> with ContextMen
           context,
           ContextMenuButtonConfig(
             '删除',
-            onPressed: () => handlePressed(context, () {}),
+            onPressed: widget.selectedItems.isEmpty
+                ? null
+                : () => handlePressed(context, () => widget.onDelete(widget.selectedItems)),
             shortcutLabel: 'Delete',
           ),
         ),
