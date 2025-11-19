@@ -83,22 +83,37 @@ class _TrafficListViewState extends State<TrafficListView> {
   }
 
   void _showContextMenu(BuildContext context, Offset position, List<TrafficItem> selectedItems) {
-    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
-    showMenu(
-      context: context,
-      position: RelativeRect.fromRect(
-        position & const Size(1, 1),
-        Offset.zero & overlay.size,
-      ),
-      items: [
-        PopupMenuItem(
-          child: TrafficContextMenu(
-            selectedItems: selectedItems,
-            onDelete: _deleteItems,
-          ),
+    final overlay = Overlay.of(context);
+    OverlayEntry? overlayEntry;
+    
+    overlayEntry = OverlayEntry(
+      builder: (context) => GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () {
+          overlayEntry?.remove();
+        },
+        child: Stack(
+          children: [
+            Positioned(
+              left: position.dx,
+              top: position.dy,
+              child: Material(
+                color: Colors.transparent,
+                child: TrafficContextMenu(
+                  selectedItems: selectedItems,
+                  onDelete: (items) {
+                    overlayEntry?.remove();
+                    _deleteItems(items);
+                  },
+                ),
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
+    
+    overlay.insert(overlayEntry);
   }
 
   @override
