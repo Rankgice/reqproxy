@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:reqproxy/core/models/traffic_item.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
-import 'package:context_menus/context_menus.dart';
 import 'package:reqproxy/presentation/widgets/traffic_context_menu.dart';
 
 class TrafficListView extends StatefulWidget {
@@ -63,6 +62,7 @@ class _TrafficListViewState extends State<TrafficListView> {
 
   @override
   void dispose() {
+    _closeContextMenu();
     _focusNode.dispose();
     _dataGridController.removeListener(_updateState);
     _dataGridController.dispose();
@@ -82,38 +82,53 @@ class _TrafficListViewState extends State<TrafficListView> {
     });
   }
 
+  OverlayEntry? _contextMenuEntry;
+
+  void _closeContextMenu() {
+    _contextMenuEntry?.remove();
+    _contextMenuEntry = null;
+  }
+
   void _showContextMenu(BuildContext context, Offset position, List<TrafficItem> selectedItems) {
+    _closeContextMenu(); // Close any existing menu
+
     final overlay = Overlay.of(context);
-    OverlayEntry? overlayEntry;
+    final screenSize = MediaQuery.of(context).size;
     
-    overlayEntry = OverlayEntry(
-      builder: (context) => GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onTap: () {
-          overlayEntry?.remove();
-        },
-        child: Stack(
-          children: [
-            Positioned(
-              left: position.dx,
-              top: position.dy,
-              child: Material(
-                color: Colors.transparent,
-                child: TrafficContextMenu(
-                  selectedItems: selectedItems,
-                  onDelete: (items) {
-                    overlayEntry?.remove();
-                    _deleteItems(items);
-                  },
-                ),
+    _contextMenuEntry = OverlayEntry(
+      builder: (context) => Stack(
+        children: [
+          // Full-screen mask
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: _closeContextMenu,
+              onSecondaryTap: _closeContextMenu,
+              onPanStart: (_) => _closeContextMenu(),
+            ),
+          ),
+          // Context Menu
+          CustomSingleChildLayout(
+            delegate: _ContextMenuLayoutDelegate(
+              position: position,
+              screenSize: screenSize,
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: TrafficContextMenu(
+                selectedItems: selectedItems,
+                onDelete: (items) {
+                  _closeContextMenu();
+                  _deleteItems(items);
+                },
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
     
-    overlay.insert(overlayEntry);
+    overlay.insert(_contextMenuEntry!);
   }
 
   @override
@@ -362,5 +377,48 @@ class TrafficDataSource extends DataGridSource {
       return const Icon(Icons.image, size: 16);
     }
     return const Icon(Icons.description, size: 16);
+  }
+}
+
+class _ContextMenuLayoutDelegate extends SingleChildLayoutDelegate {
+  final Offset position;
+  final Size screenSize;
+
+  _ContextMenuLayoutDelegate({
+    required this.position,
+    required this.screenSize,
+  });
+
+  @override
+  BoxConstraints getConstraintsForChild(BoxConstraints constraints) {
+    // Allow the child to be as large as it wants, up to screen size
+    return BoxConstraints.loose(screenSize);
+  }
+
+  @override
+  Offset getPositionForChild(Size size, Size childSize) {
+    double dx = position.dx;
+    double dy = position.dy;
+
+    // Horizontal boundary check
+    if (dx + childSize.width > screenSize.width) {
+      dx = screenSize.width - childSize.width;
+    }
+
+    // Vertical boundary check
+    if (dy + childSize.height > screenSize.height) {
+      dy = screenSize.height - childSize.height;
+    }
+
+    // Ensure it doesn't go off-screen top/left (unlikely with mouse click, but good safety)
+    if (dx < 0) dx = 0;
+    if (dy < 0) dy = 0;
+
+    return Offset(dx, dy);
+  }
+
+  @override
+  bool shouldRelayout(_ContextMenuLayoutDelegate oldDelegate) {
+    return position != oldDelegate.position || screenSize != oldDelegate.screenSize;
   }
 }

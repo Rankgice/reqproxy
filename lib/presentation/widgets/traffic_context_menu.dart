@@ -36,34 +36,43 @@ class _TrafficContextMenuState extends State<TrafficContextMenu> {
     final RenderBox renderBox = itemContext.findRenderObject() as RenderBox;
     final Offset offset = renderBox.localToGlobal(Offset.zero);
     final Size size = renderBox.size;
+    final Rect parentRect = offset & size;
+    final Size screenSize = MediaQuery.of(context).size;
 
     _submenuEntry = OverlayEntry(
-      builder: (context) => Positioned(
-        left: offset.dx + size.width,
-        top: offset.dy,
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 250),
-            decoration: BoxDecoration(
-              color: const Color(0xFF2B2B2B),
-              borderRadius: BorderRadius.circular(4),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.5),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+      builder: (context) => Stack(
+        children: [
+          // Submenu Layout
+          CustomSingleChildLayout(
+            delegate: _SubmenuLayoutDelegate(
+              parentRect: parentRect,
+              screenSize: screenSize,
             ),
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: items,
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 250),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2B2B2B),
+                  borderRadius: BorderRadius.circular(4),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.5),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: items,
+                ),
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
 
@@ -329,6 +338,48 @@ class _TrafficContextMenuState extends State<TrafficContextMenu> {
         ),
       ),
     );
+  }
+}
+
+class _SubmenuLayoutDelegate extends SingleChildLayoutDelegate {
+  final Rect parentRect;
+  final Size screenSize;
+
+  _SubmenuLayoutDelegate({
+    required this.parentRect,
+    required this.screenSize,
+  });
+
+  @override
+  BoxConstraints getConstraintsForChild(BoxConstraints constraints) {
+    return BoxConstraints.loose(screenSize);
+  }
+
+  @override
+  Offset getPositionForChild(Size size, Size childSize) {
+    double dx = parentRect.right;
+    double dy = parentRect.top;
+
+    // Horizontal check: if not enough space on right, try left
+    if (dx + childSize.width > screenSize.width) {
+      dx = parentRect.left - childSize.width;
+    }
+
+    // Vertical check: if not enough space below, shift up
+    if (dy + childSize.height > screenSize.height) {
+      dy = screenSize.height - childSize.height;
+    }
+
+    // Safety check
+    if (dx < 0) dx = 0;
+    if (dy < 0) dy = 0;
+
+    return Offset(dx, dy);
+  }
+
+  @override
+  bool shouldRelayout(_SubmenuLayoutDelegate oldDelegate) {
+    return parentRect != oldDelegate.parentRect || screenSize != oldDelegate.screenSize;
   }
 }
 
