@@ -23,39 +23,7 @@ class TrafficDetailView extends StatelessWidget {
       margin: EdgeInsets.zero,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       color: const Color(0xFF2C2C2C),
-      child: Column(
-        children: [
-          _buildHeader(context),
-          Expanded(child: _buildBody()),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      height: 45,
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: Colors.black54, width: 1.0),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            '${trafficItem.method.name.toUpperCase()} ${trafficItem.url}',
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-            overflow: TextOverflow.ellipsis,
-          ),
-          IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: onClose,
-            tooltip: 'Close',
-          ),
-        ],
-      ),
+      child: _buildBody(),
     );
   }
 
@@ -75,19 +43,30 @@ class TrafficDetailView extends StatelessWidget {
         children: [
           Container(
             height: 49,
-            child: const TabBar(
-              tabs: [
-                Tab(text: '总览'),
-                Tab(text: '原始'),
-                Tab(text: '参数'),
-                Tab(text: '请求头'),
-                Tab(text: '请求体'),
+            child: Row(
+              children: [
+                const Expanded(
+                  child: TabBar(
+                    tabs: [
+                      Tab(text: '总览'),
+                      Tab(text: '原始'),
+                      Tab(text: '参数'),
+                      Tab(text: '请求头'),
+                      Tab(text: '请求体'),
+                    ],
+                    isScrollable: true,
+                    tabAlignment: TabAlignment.start,
+                    indicatorColor: Colors.yellow,
+                    labelColor: Color(0xFFDFDFE0),
+                    unselectedLabelColor: Colors.white70,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: onClose,
+                  tooltip: 'Close',
+                ),
               ],
-              isScrollable: true,
-              tabAlignment: TabAlignment.start,
-              indicatorColor: Colors.yellow,
-              labelColor: Color(0xFFDFDFE0),
-              unselectedLabelColor: Colors.white70,
             ),
           ),
           Expanded(
