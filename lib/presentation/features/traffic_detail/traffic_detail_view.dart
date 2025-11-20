@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:reqproxy/core/models/traffic_item.dart';
 import 'package:reqproxy/presentation/widgets/split_view.dart';
+import 'package:reqproxy/presentation/features/traffic_detail/widgets/response_raw_view.dart';
 
 class TrafficDetailView extends StatelessWidget {
   final TrafficItem trafficItem;
@@ -125,7 +126,7 @@ class TrafficDetailView extends StatelessWidget {
           Expanded(
             child: TabBarView(
               children: [
-                Container(child: const Center(child: Text('Response Raw'))),
+                ResponseRawView(trafficItem: trafficItem),
                 Container(child: const Center(child: Text('Response Headers'))),
                 Container(child: const Center(child: Text('Response Body'))),
               ],
