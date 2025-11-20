@@ -4,6 +4,7 @@ import 'package:reqproxy/presentation/widgets/split_view.dart';
 import 'package:reqproxy/presentation/features/traffic_detail/widgets/response_raw_view.dart';
 import 'package:reqproxy/presentation/features/traffic_detail/widgets/request_raw_view.dart';
 import 'package:reqproxy/presentation/features/traffic_detail/widgets/request_body_view.dart';
+import 'package:reqproxy/presentation/features/traffic_detail/widgets/request_headers_view.dart';
 
 class TrafficDetailView extends StatelessWidget {
   final TrafficItem trafficItem;
@@ -94,7 +95,7 @@ class TrafficDetailView extends StatelessWidget {
                 Container(child: const Center(child: Text('Request Overview'))),
                 RequestRawView(trafficItem: trafficItem),
                 Container(child: const Center(child: Text('Request Params'))),
-                Container(child: const Center(child: Text('Request Headers'))),
+                RequestHeadersView(trafficItem: trafficItem),
                 RequestBodyView(trafficItem: trafficItem),
               ],
             ),
