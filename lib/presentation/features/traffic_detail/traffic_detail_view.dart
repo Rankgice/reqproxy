@@ -61,11 +61,37 @@ class TrafficDetailView extends StatelessWidget {
                     unselectedLabelColor: Colors.white70,
                   ),
                 ),
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF64D16F),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    trafficItem.method.name.toUpperCase(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
                 IconButton(
-                  icon: const Icon(Icons.close),
+                  icon: const Icon(Icons.more_horiz, color: Colors.grey),
+                  onPressed: () {}, // Placeholder
+                  tooltip: 'More',
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  padding: EdgeInsets.zero,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close, color: Colors.grey),
                   onPressed: onClose,
                   tooltip: 'Close',
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  padding: EdgeInsets.zero,
                 ),
+                const SizedBox(width: 8),
               ],
             ),
           ),
