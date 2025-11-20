@@ -33,6 +33,7 @@ class _CodeEditorState extends State<CodeEditor> {
   final ScrollController _mainScrollController = ScrollController();
   final ScrollController _gutterScrollController = ScrollController();
   bool _isInternalController = false;
+  int _currentLineIndex = 0;
 
   @override
   void initState() {
@@ -65,7 +66,25 @@ class _CodeEditorState extends State<CodeEditor> {
   }
 
   void _handleTextChange() {
-    setState(() {}); // Rebuild to update line numbers
+    // Calculate current line index based on selection
+    final text = _controller.text;
+    final selection = _controller.selection;
+    
+    int newIndex = 0;
+    if (selection.baseOffset >= 0 && selection.baseOffset <= text.length) {
+      newIndex = text.substring(0, selection.baseOffset).split('\n').length - 1;
+    }
+
+    if (newIndex != _currentLineIndex) {
+      setState(() {
+        _currentLineIndex = newIndex;
+      });
+    } else {
+      // If line count changed but index didn't (e.g. added line below), we still need to rebuild gutter
+      // But setState is expensive, so maybe check if line count changed?
+      // For now, simple setState is safer for correctness.
+      setState(() {});
+    }
   }
 
   @override
@@ -86,10 +105,6 @@ class _CodeEditorState extends State<CodeEditor> {
       height: 1.5,
     );
 
-    // Calculate line count
-    // Note: This simple calculation doesn't account for wrapped lines.
-    // For a perfect code editor, we'd need a more complex layout engine.
-    // Given the constraints, we assume 1 newline = 1 line number.
     int lineCount = _controller.text.split('\n').length;
     if (_controller.text.isEmpty) lineCount = 1;
 
@@ -108,13 +123,16 @@ class _CodeEditorState extends State<CodeEditor> {
               itemCount: lineCount,
               physics: const NeverScrollableScrollPhysics(), // Scroll controlled by main
               itemBuilder: (context, index) {
+                final isCurrentLine = index == _currentLineIndex;
                 return Container(
                   alignment: Alignment.centerRight,
                   padding: const EdgeInsets.only(right: 12),
                   height: textStyle.fontSize! * textStyle.height!, // Approximate line height
                   child: Text(
                     '${index + 1}',
-                    style: gutterStyle,
+                    style: isCurrentLine 
+                        ? gutterStyle.copyWith(color: Colors.white) 
+                        : gutterStyle,
                   ),
                 );
               },
