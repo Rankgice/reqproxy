@@ -51,7 +51,7 @@ class _TrafficContextMenuState extends State<TrafficContextMenu> {
             child: Material(
               color: Colors.transparent,
               child: Container(
-                constraints: const BoxConstraints(maxWidth: 250),
+                constraints: const BoxConstraints(maxWidth: 180),
                 decoration: BoxDecoration(
                   color: const Color(0xFF2B2B2B),
                   borderRadius: BorderRadius.circular(4),
@@ -93,7 +93,7 @@ class _TrafficContextMenuState extends State<TrafficContextMenu> {
     return CompositedTransformTarget(
       link: _layerLink,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 280),
+        constraints: const BoxConstraints(maxWidth: 200),
         child: Container(
           decoration: BoxDecoration(
             color: const Color(0xFF2B2B2B),
