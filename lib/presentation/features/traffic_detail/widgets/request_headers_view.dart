@@ -169,7 +169,7 @@ class _RequestHeadersViewState extends State<RequestHeadersView> {
   Widget _buildTextView() {
     return CodeEditor(
       controller: _textController,
-      readOnly: true,
+      readOnly: false,
       wrap: _isWrapEnabled,
       style: const TextStyle(
         fontFamily: 'Consolas',
