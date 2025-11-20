@@ -27,7 +27,7 @@ class _TrafficContextMenuState extends State<TrafficContextMenu> {
     final bool canCopy = firstItem != null;
 
     return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 250),
+      constraints: const BoxConstraints(maxWidth: 280),
       child: Container(
         decoration: BoxDecoration(
           color: const Color(0xFF2B2B2B),
@@ -41,130 +41,226 @@ class _TrafficContextMenuState extends State<TrafficContextMenu> {
           ],
         ),
         padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _CustomMenuItem(
-              label: '复制cURL',
-              shortcut: 'Ctrl+Shift+C',
-              onPressed: !canCopy
-                  ? null
-                  : () {
-                      _copy('curl "${firstItem!.url}"');
-                    },
-            ),
-            _CustomMenuItem(
-              label: '复制',
-              hasSubmenu: true,
-              onPressedContext: !canCopy ? null : (ctx) => _showSubmenu(ctx, []), // TODO: Add copy items
-            ),
-            _CustomMenuItem(
-              label: '选择',
-              hasSubmenu: true,
-              onPressedContext: (ctx) {
-                _showSubmenu(
-                  ctx,
-                  [
-                    _SubmenuItem(label: '全选', shortcut: 'Ctrl+A', onPressed: () {}),
-                    _SubmenuItem(label: '反选', shortcut: 'Ctrl+Shift+I', onPressed: () {}),
-                    const _SubmenuDivider(),
-                    _SubmenuItem(label: '相同域名', onPressed: () {}),
-                    _SubmenuItem(label: '相同路径', onPressed: () {}),
-                    _SubmenuItem(label: '相同URL', onPressed: () {}),
-                    const _SubmenuDivider(),
-                    _SubmenuItem(label: '复用连接', onPressed: () {}),
-                    const _SubmenuDivider(),
-                    _SubmenuItem(label: '分部内容', onPressed: () {}),
-                  ],
-                );
-              },
-            ),
-            _CustomMenuItem(
-              label: '查看',
-              hasSubmenu: true,
-              onPressedContext: (ctx) => _showSubmenu(ctx, []),
-            ),
-            _CustomMenuItem(
-              label: '对比',
-              hasSubmenu: true,
-              onPressedContext: (ctx) => _showSubmenu(ctx, []),
-            ),
-            const _MenuDivider(),
-            _CustomMenuItem(
-              label: '导出',
-              hasSubmenu: true,
-              onPressedContext: (ctx) => _showSubmenu(ctx, []),
-            ),
-            const _MenuDivider(),
-            _CustomMenuItem(
-              label: '编辑',
-              shortcut: 'Ctrl+Shift+Enter',
-              onPressed: () {},
-            ),
-            _CustomMenuItem(
-              label: '重发',
-              hasSubmenu: true,
-              onPressedContext: (ctx) => _showSubmenu(ctx, []),
-            ),
-            _CustomMenuItem(
-              label: '添加备注',
-              onPressed: () {},
-            ),
-            const _MenuDivider(),
-            _CustomMenuItem(
-              label: 'SSL代理',
-              hasSubmenu: true,
-              onPressedContext: (ctx) => _showSubmenu(ctx, []),
-            ),
-            const _MenuDivider(),
-            _CustomMenuItem(
-              label: '镜像',
-              onPressed: () {},
-            ),
-            _CustomMenuItem(
-              label: '网关',
-              hasSubmenu: true,
-              onPressedContext: (ctx) => _showSubmenu(ctx, []),
-            ),
-            _CustomMenuItem(
-              label: '脚本',
-              onPressed: () {},
-            ),
-            _CustomMenuItem(
-              label: '重写',
-              hasSubmenu: true,
-              onPressedContext: (ctx) => _showSubmenu(ctx, []),
-            ),
-            _CustomMenuItem(
-              label: '断点',
-              onPressed: () {},
-            ),
-            const _MenuDivider(),
-            _CustomMenuItem(
-              label: '高亮',
-              hasSubmenu: true,
-              onPressedContext: (ctx) => _showSubmenu(ctx, []),
-            ),
-            _CustomMenuItem(
-              label: '书签',
-              hasSubmenu: true,
-              onPressedContext: (ctx) => _showSubmenu(ctx, []),
-            ),
-            const _MenuDivider(),
-            _CustomMenuItem(
-              label: '添加到',
-              hasSubmenu: true,
-              onPressedContext: (ctx) => _showSubmenu(ctx, []),
-            ),
-            _CustomMenuItem(
-              label: '删除',
-              shortcut: 'Delete',
-              onPressed: widget.selectedItems.isEmpty
-                  ? null
-                  : () => widget.onDelete(widget.selectedItems),
-            ),
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // 复制cURL
+              _CustomMenuItem(
+                label: '复制cURL',
+                shortcut: 'Ctrl+Shift+C',
+                onPressed: !canCopy ? null : () => _copy('curl "${firstItem!.url}"'),
+              ),
+              // 复制 >
+              _CustomMenuItem(
+                label: '复制',
+                hasSubmenu: true,
+                onPressedContext: !canCopy ? null : (ctx) => _showSubmenu(ctx, [
+                  _SubmenuItem(label: 'URL', shortcut: 'Ctrl+C', onPressed: () => _copy(firstItem!.url)),
+                  _SubmenuItem(label: '域名', onPressed: () => _copy(firstItem!.uri.host)),
+                  _SubmenuItem(label: '路径', onPressed: () => _copy(firstItem!.uri.path)),
+                  const _SubmenuDivider(),
+                  _SubmenuItem(label: '服务器IP', onPressed: () => _copy(firstItem!.serverIp)),
+                  _SubmenuItem(label: '客户端IP', onPressed: () => _copy(firstItem!.clientIp)),
+                  _SubmenuItem(label: '服务器地址', onPressed: () {}),
+                  _SubmenuItem(label: '客户端地址', onPressed: () {}),
+                  const _SubmenuDivider(),
+                  _SubmenuItem(label: '行', onPressed: () {}),
+                  const _SubmenuDivider(),
+                  _SubmenuItem(label: '备注', onPressed: () {}),
+                ]),
+              ),
+              // 选择 >
+              _CustomMenuItem(
+                label: '选择',
+                hasSubmenu: true,
+                onPressedContext: (ctx) => _showSubmenu(ctx, [
+                  _SubmenuItem(label: '全选', shortcut: 'Ctrl+A', onPressed: () {}),
+                  _SubmenuItem(label: '反选', shortcut: 'Ctrl+Shift+I', onPressed: () {}),
+                  const _SubmenuDivider(),
+                  _SubmenuItem(label: '相同域名', onPressed: () {}),
+                  _SubmenuItem(label: '相同路径', onPressed: () {}),
+                  _SubmenuItem(label: '相同URL', onPressed: () {}),
+                  const _SubmenuDivider(),
+                  _SubmenuItem(label: '复用连接', onPressed: () {}),
+                  const _SubmenuDivider(),
+                  _SubmenuItem(label: '分部内容', onPressed: () {}),
+                ]),
+              ),
+              // 查看 >
+              _CustomMenuItem(
+                label: '查看',
+                hasSubmenu: true,
+                onPressedContext: (ctx) => _showSubmenu(ctx, [
+                  _SubmenuItem(label: '新窗口打开', shortcut: 'Ctrl+N', onPressed: () {}),
+                  _SubmenuItem(label: '浏览器打开', onPressed: () {}),
+                  const _SubmenuDivider(),
+                  _SubmenuItem(label: 'URL', shortcut: 'Ctrl+U', onPressed: () {}),
+                  _SubmenuItem(label: '生成代码', shortcut: 'Alt+S', onPressed: () {}),
+                  _SubmenuItem(label: '二维码', shortcut: 'Alt+U', onPressed: () {}),
+                ]),
+              ),
+              // 对比 >
+              _CustomMenuItem(
+                label: '对比',
+                hasSubmenu: true,
+                onPressedContext: (ctx) => _showSubmenu(ctx, [
+                  _SubmenuItem(label: '对比两者', shortcut: 'Ctrl+Y', onPressed: () {}),
+                  _SubmenuItem(label: '添加到对比池', shortcut: 'Ctrl+Shift+Y', onPressed: () {}),
+                  const _SubmenuDivider(),
+                ]),
+              ),
+              // 导出 >
+              _CustomMenuItem(
+                label: '导出',
+                hasSubmenu: true,
+                onPressedContext: (ctx) => _showSubmenu(ctx, [
+                  _SubmenuItem(label: '请求', onPressed: () {}),
+                  _SubmenuItem(label: '请求(原始)', onPressed: () {}),
+                  _SubmenuItem(label: '请求头', onPressed: () {}),
+                  _SubmenuItem(label: '请求体', onPressed: () {}),
+                  _SubmenuItem(label: '请求体(原始)', onPressed: () {}),
+                  const _SubmenuDivider(),
+                  _SubmenuItem(label: '响应', onPressed: () {}),
+                  _SubmenuItem(label: '响应(原始)', onPressed: () {}),
+                  _SubmenuItem(label: '响应头', onPressed: () {}),
+                  _SubmenuItem(label: '响应体', onPressed: () {}),
+                  _SubmenuItem(label: '响应体(原始)', onPressed: () {}),
+                  const _SubmenuDivider(),
+                  _SubmenuItem(label: '请求 + 响应', onPressed: () {}),
+                  _SubmenuItem(label: '请求(原始) + 响应(原始)', onPressed: () {}),
+                  const _SubmenuDivider(),
+                  _SubmenuItem(label: '会话', onPressed: () {}),
+                  _SubmenuItem(label: '会话(原始)', onPressed: () {}),
+                  const _SubmenuDivider(),
+                  _SubmenuItem(label: '分部内容', onPressed: () {}),
+                  const _SubmenuDivider(),
+                  _SubmenuItem(label: '结构', onPressed: () {}),
+                  _SubmenuItem(label: 'CSV', onPressed: () {}),
+                  _SubmenuItem(label: 'HAR', onPressed: () {}),
+                ]),
+              ),
+              // 编辑
+              _CustomMenuItem(
+                label: '编辑',
+                shortcut: 'Ctrl+Shift+Enter',
+                onPressed: () {},
+              ),
+              // 重发 >
+              _CustomMenuItem(
+                label: '重发',
+                hasSubmenu: true,
+                onPressedContext: (ctx) => _showSubmenu(ctx, [
+                  _SubmenuItem(label: '1 次', shortcut: 'Ctrl+Enter', onPressed: () {}),
+                  _SubmenuItem(label: '2 次', onPressed: () {}),
+                  _SubmenuItem(label: '3 次', onPressed: () {}),
+                  _SubmenuItem(label: '4 次', onPressed: () {}),
+                  _SubmenuItem(label: '5 次', onPressed: () {}),
+                  _SubmenuItem(label: '自定义', onPressed: () {}),
+                ]),
+              ),
+              // 添加备注
+              _CustomMenuItem(
+                label: '添加备注',
+                onPressed: () {},
+              ),
+              // SSL代理 >
+              _CustomMenuItem(
+                label: 'SSL代理',
+                hasSubmenu: true,
+                onPressedContext: (ctx) => _showSubmenu(ctx, [
+                  _SubmenuItem(label: '新建', onPressed: () {}),
+                ]),
+              ),
+              // 镜像
+              _CustomMenuItem(
+                label: '镜像',
+                onPressed: () {},
+              ),
+              // 网关 >
+              _CustomMenuItem(
+                label: '网关',
+                hasSubmenu: true,
+                onPressedContext: (ctx) => _showSubmenu(ctx, [
+                  _SubmenuItem(label: '仅允许', onPressed: () {}),
+                  _SubmenuItem(label: '静默', onPressed: () {}),
+                  _SubmenuItem(label: '屏蔽请求', onPressed: () {}),
+                  _SubmenuItem(label: '屏蔽响应', onPressed: () {}),
+                  _SubmenuItem(label: '挂起请求', onPressed: () {}),
+                  _SubmenuItem(label: '挂起响应', onPressed: () {}),
+                ]),
+              ),
+              // 脚本
+              _CustomMenuItem(
+                label: '脚本',
+                onPressed: () {},
+              ),
+              // 重写 >
+              _CustomMenuItem(
+                label: '重写',
+                hasSubmenu: true,
+                onPressedContext: (ctx) => _showSubmenu(ctx, [
+                  _SubmenuItem(label: '重定向URL', onPressed: () {}),
+                  _SubmenuItem(label: '替换请求', onPressed: () {}),
+                  _SubmenuItem(label: '替换响应', onPressed: () {}),
+                  _SubmenuItem(label: '修改请求', onPressed: () {}),
+                  _SubmenuItem(label: '修改响应', onPressed: () {}),
+                ]),
+              ),
+              // 断点
+              _CustomMenuItem(
+                label: '断点',
+                onPressed: () {},
+              ),
+              const _MenuDivider(),
+              // 高亮 >
+              _CustomMenuItem(
+                label: '高亮',
+                hasSubmenu: true,
+                onPressedContext: (ctx) => _showSubmenu(ctx, [
+                  _SubmenuItem(label: '红色', shortcut: 'Alt+1', onPressed: () {}),
+                  _SubmenuItem(label: '黄色', shortcut: 'Alt+2', onPressed: () {}),
+                  _SubmenuItem(label: '绿色', shortcut: 'Alt+3', onPressed: () {}),
+                  _SubmenuItem(label: '蓝色', shortcut: 'Alt+4', onPressed: () {}),
+                  _SubmenuItem(label: '青色', shortcut: 'Alt+5', onPressed: () {}),
+                  _SubmenuItem(label: '划线', shortcut: 'Alt+-', onPressed: () {}),
+                  const _SubmenuDivider(),
+                  _SubmenuItem(label: '标记已阅', isChecked: true, onPressed: () {}),
+                  const _SubmenuDivider(),
+                  _SubmenuItem(label: '重置', shortcut: 'Alt+0', onPressed: () {}),
+                  _SubmenuItem(label: '自动', onPressed: () {}),
+                ]),
+              ),
+              // 书签 >
+              _CustomMenuItem(
+                label: '书签',
+                hasSubmenu: true,
+                onPressedContext: (ctx) => _showSubmenu(ctx, [
+                  _SubmenuItem(label: '添加域名', onPressed: () {}),
+                  _SubmenuItem(label: '添加路径', onPressed: () {}),
+                ]),
+              ),
+              // 添加到 >
+              _CustomMenuItem(
+                label: '添加到',
+                hasSubmenu: true,
+                onPressedContext: (ctx) => _showSubmenu(ctx, [
+                  _SubmenuItem(label: 'API集合', shortcut: 'Ctrl+I', onPressed: () {}),
+                  _SubmenuItem(label: '新会话', onPressed: () {}),
+                  _SubmenuItem(label: '我的收藏', onPressed: () {}),
+                ]),
+              ),
+              // 删除
+              _CustomMenuItem(
+                label: '删除',
+                shortcut: 'Delete',
+                onPressed: widget.selectedItems.isEmpty
+                    ? null
+                    : () => widget.onDelete(widget.selectedItems),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -181,8 +277,8 @@ class _TrafficContextMenuState extends State<TrafficContextMenu> {
     final RelativeRect position = RelativeRect.fromLTRB(
       offset.dx + size.width,
       offset.dy,
-      offset.dx + size.width + 200, // Arbitrary right bound, showMenu handles constraints
-      offset.dy + size.height + items.length * 40.0, // Estimate height
+      offset.dx + size.width + 200,
+      offset.dy + size.height + items.length * 40.0,
     );
 
     showMenu(
@@ -191,6 +287,7 @@ class _TrafficContextMenuState extends State<TrafficContextMenu> {
       items: items,
       color: const Color(0xFF2B2B2B),
       elevation: 8,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
     );
   }
 }
@@ -239,7 +336,7 @@ class _CustomMenuItemState extends State<_CustomMenuItem> {
         },
         child: Container(
           color: _isHovered ? const Color(0xFFFF9800) : Colors.transparent,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           child: Row(
             children: [
               Expanded(
@@ -252,18 +349,24 @@ class _CustomMenuItemState extends State<_CustomMenuItem> {
                 ),
               ),
               if (widget.shortcut != null)
-                Text(
-                  widget.shortcut!,
-                  style: TextStyle(
-                    color: isDisabled ? Colors.grey : (_isHovered ? Colors.white : Colors.grey),
-                    fontSize: 12,
+                Padding(
+                  padding: const EdgeInsets.only(left: 16),
+                  child: Text(
+                    widget.shortcut!,
+                    style: TextStyle(
+                      color: isDisabled ? Colors.grey : (_isHovered ? Colors.white : Colors.grey),
+                      fontSize: 12,
+                    ),
                   ),
                 ),
               if (widget.hasSubmenu)
-                Icon(
-                  Icons.chevron_right,
-                  size: 16,
-                  color: isDisabled ? Colors.grey : Colors.white,
+                Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: Icon(
+                    Icons.chevron_right,
+                    size: 16,
+                    color: isDisabled ? Colors.grey : Colors.white,
+                  ),
                 ),
             ],
           ),
@@ -287,17 +390,28 @@ class _MenuDivider extends StatelessWidget {
 }
 
 class _SubmenuItem extends PopupMenuItem {
+  final bool isChecked;
+
   _SubmenuItem({
     required String label,
     required VoidCallback onPressed,
     String? shortcut,
+    this.isChecked = false,
   }) : super(
           onTap: onPressed,
           height: 32,
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(label, style: const TextStyle(fontSize: 13, color: Colors.white)),
+              if (isChecked)
+                const Padding(
+                  padding: EdgeInsets.only(right: 8),
+                  child: Icon(Icons.check, size: 16, color: Colors.white),
+                )
+              else
+                const SizedBox(width: 24), // Placeholder for check icon
+              Expanded(
+                child: Text(label, style: const TextStyle(fontSize: 13, color: Colors.white)),
+              ),
               if (shortcut != null)
                 Text(shortcut, style: const TextStyle(fontSize: 12, color: Colors.grey)),
             ],
