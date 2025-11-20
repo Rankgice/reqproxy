@@ -5,6 +5,7 @@ import 'package:reqproxy/presentation/features/traffic_detail/widgets/response_r
 import 'package:reqproxy/presentation/features/traffic_detail/widgets/request_raw_view.dart';
 import 'package:reqproxy/presentation/features/traffic_detail/widgets/request_body_view.dart';
 import 'package:reqproxy/presentation/features/traffic_detail/widgets/request_headers_view.dart';
+import 'package:reqproxy/presentation/features/traffic_detail/widgets/request_overview_view.dart';
 
 class TrafficDetailView extends StatelessWidget {
   final TrafficItem trafficItem;
@@ -92,7 +93,7 @@ class TrafficDetailView extends StatelessWidget {
           Expanded(
             child: TabBarView(
               children: [
-                Container(child: const Center(child: Text('Request Overview'))),
+                RequestOverviewView(trafficItem: trafficItem),
                 RequestRawView(trafficItem: trafficItem),
                 Container(child: const Center(child: Text('Request Params'))),
                 RequestHeadersView(trafficItem: trafficItem),
