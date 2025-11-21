@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:reqproxy/core/models/traffic_item.dart';
+import 'package:reqproxy/presentation/theme/reqable_menu_theme.dart';
 
 class TrafficContextMenu extends StatefulWidget {
   final List<TrafficItem> selectedItems;
@@ -53,15 +54,9 @@ class _TrafficContextMenuState extends State<TrafficContextMenu> {
               child: Container(
                 constraints: const BoxConstraints(maxWidth: 180),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF2B2B2B),
-                  borderRadius: BorderRadius.circular(4),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.5),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+                  color: ReqableMenuTheme.backgroundColor,
+                  borderRadius: BorderRadius.circular(ReqableMenuTheme.borderRadius),
+                  boxShadow: ReqableMenuTheme.shadow,
                 ),
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Column(
@@ -96,15 +91,9 @@ class _TrafficContextMenuState extends State<TrafficContextMenu> {
         constraints: const BoxConstraints(maxWidth: 200),
         child: Container(
           decoration: BoxDecoration(
-            color: const Color(0xFF2B2B2B),
-            borderRadius: BorderRadius.circular(4),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.5),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
+            color: ReqableMenuTheme.backgroundColor,
+            borderRadius: BorderRadius.circular(ReqableMenuTheme.borderRadius),
+            boxShadow: ReqableMenuTheme.shadow,
           ),
           padding: const EdgeInsets.symmetric(vertical: 4),
           child: SingleChildScrollView(
@@ -429,7 +418,7 @@ class _CustomMenuItemState extends State<_CustomMenuItem> {
           }
         },
         child: Container(
-          color: _isHovered ? const Color(0xFFFF9800) : Colors.transparent,
+          color: _isHovered ? ReqableMenuTheme.hoverColor : Colors.transparent,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           child: Row(
             children: [
@@ -437,7 +426,7 @@ class _CustomMenuItemState extends State<_CustomMenuItem> {
                 child: Text(
                   widget.label,
                   style: TextStyle(
-                    color: isDisabled ? Colors.grey : Colors.white,
+                    color: isDisabled ? ReqableMenuTheme.disabledTextColor : ReqableMenuTheme.textColor,
                     fontSize: 13,
                   ),
                 ),
@@ -448,7 +437,7 @@ class _CustomMenuItemState extends State<_CustomMenuItem> {
                   child: Text(
                     widget.shortcut!,
                     style: TextStyle(
-                      color: isDisabled ? Colors.grey : (_isHovered ? Colors.white : Colors.grey),
+                      color: isDisabled ? ReqableMenuTheme.disabledTextColor : (_isHovered ? ReqableMenuTheme.textColor : ReqableMenuTheme.disabledTextColor),
                       fontSize: 12,
                     ),
                   ),
@@ -459,7 +448,7 @@ class _CustomMenuItemState extends State<_CustomMenuItem> {
                   child: Icon(
                     Icons.chevron_right,
                     size: 16,
-                    color: isDisabled ? Colors.grey : Colors.white,
+                    color: isDisabled ? ReqableMenuTheme.disabledTextColor : ReqableMenuTheme.textColor,
                   ),
                 ),
             ],
@@ -478,7 +467,7 @@ class _MenuDivider extends StatelessWidget {
     return const Divider(
       height: 1,
       thickness: 1,
-      color: Color(0xFF3E3E3E),
+      color: ReqableMenuTheme.dividerColor,
     );
   }
 }
@@ -511,21 +500,21 @@ class _SubmenuItemState extends State<_SubmenuItem> {
       child: GestureDetector(
         onTap: widget.onPressed,
         child: Container(
-          color: _isHovered ? const Color(0xFFFF9800) : Colors.transparent,
+          color: _isHovered ? ReqableMenuTheme.hoverColor : Colors.transparent,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           child: Row(
             children: [
               if (widget.isChecked)
                 const Padding(
                   padding: EdgeInsets.only(right: 8),
-                  child: Icon(Icons.check, size: 16, color: Colors.white),
+                  child: Icon(Icons.check, size: 16, color: ReqableMenuTheme.textColor),
                 )
               else
                 const SizedBox(width: 24), // Placeholder for check icon
               Expanded(
                 child: Text(
                   widget.label,
-                  style: const TextStyle(fontSize: 13, color: Colors.white),
+                  style: const TextStyle(fontSize: 13, color: ReqableMenuTheme.textColor),
                 ),
               ),
               if (widget.shortcut != null)
@@ -533,7 +522,7 @@ class _SubmenuItemState extends State<_SubmenuItem> {
                   widget.shortcut!,
                   style: TextStyle(
                     fontSize: 12,
-                    color: _isHovered ? Colors.white : Colors.grey,
+                    color: _isHovered ? ReqableMenuTheme.textColor : ReqableMenuTheme.disabledTextColor,
                   ),
                 ),
             ],
@@ -552,7 +541,7 @@ class _SubmenuDivider extends StatelessWidget {
     return const Divider(
       height: 1,
       thickness: 1,
-      color: Color(0xFF3E3E3E),
+      color: ReqableMenuTheme.dividerColor,
     );
   }
 }
