@@ -11,7 +11,7 @@ class RequestOverviewView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFF1E1E1E),
+      color: const Color(0xFF2B2B2B),
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,6 +104,17 @@ class RequestOverviewView extends StatelessWidget {
   Widget _buildUrlSection() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: Color(0xFF464646),          // 下边框的颜色
+            width: 0.7,                  // 下边框的厚度
+            style: BorderStyle.solid,    // 下边框的样式 (通常是实线)
+          ),
+        ),
+        // 如果需要，也可以设置圆角，但只对背景色和全边框可见
+        // borderRadius: BorderRadius.circular(8.0),
+      ),
       child: Row(
         children: [
           Expanded(
@@ -154,26 +165,29 @@ class RequestOverviewView extends StatelessWidget {
   }
 
   Widget _buildGeneralInfo() {
-    return Column(
-      children: [
-        _buildInfoRow(
-          '状态',
-          trafficItem.statusMessage.isNotEmpty
-              ? trafficItem.statusMessage
-              : 'Completed',
-        ),
-        _buildInfoRow('方法', trafficItem.method.name),
-        _buildInfoRow('协议', trafficItem.protocol),
-        _buildInfoRow('Code', trafficItem.statusCode.toString()),
-        _buildInfoRow('服务器地址', trafficItem.serverIp),
-        _buildInfoRow('Keep Alive', 'true'), // Placeholder
-        _buildInfoRow('流', '#1'), // Placeholder
-        _buildInfoRow(
-          'Content Type',
-          trafficItem.contentType.isNotEmpty ? trafficItem.contentType : '-',
-        ),
-        _buildInfoRow('代理协议', 'https'), // Placeholder
-      ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        children: [
+          _buildInfoRow(
+            '状态',
+            trafficItem.statusMessage.isNotEmpty
+                ? trafficItem.statusMessage
+                : 'Completed',
+          ),
+          _buildInfoRow('方法', trafficItem.method.name),
+          _buildInfoRow('协议', trafficItem.protocol),
+          _buildInfoRow('Code', trafficItem.statusCode.toString()),
+          _buildInfoRow('服务器地址', trafficItem.serverIp),
+          _buildInfoRow('Keep Alive', 'true'), // Placeholder
+          _buildInfoRow('流', '#1'), // Placeholder
+          _buildInfoRow(
+            'Content Type',
+            trafficItem.contentType.isNotEmpty ? trafficItem.contentType : '-',
+          ),
+          _buildInfoRow('代理协议', 'https'), // Placeholder
+        ],
+      ),
     );
   }
 
@@ -187,7 +201,12 @@ class RequestOverviewView extends StatelessWidget {
             width: 120,
             child: Text(
               label,
-              style: const TextStyle(color: Colors.grey, fontSize: 13),
+              style: const TextStyle(
+                  color: Color(0xFFD4D4D4),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500
+              ),
+
             ),
           ),
           Expanded(
@@ -197,6 +216,7 @@ class RequestOverviewView extends StatelessWidget {
                 color: Color(0xFFD4D4D4),
                 fontSize: 13,
                 fontFamily: 'Consolas',
+                  fontWeight: FontWeight.w500
               ),
             ),
           ),
