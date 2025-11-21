@@ -104,20 +104,22 @@ class _RequestHeadersViewState extends State<RequestHeadersView> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _buildToolbar(),
-        Expanded(
-          child: _isTableMode ? _buildTableView() : _buildTextView(),
-        ),
-      ],
+    return Container(
+      padding: EdgeInsetsGeometry.symmetric(horizontal: 16),
+      child:Column(
+        children: [
+          _buildToolbar(),
+          Expanded(
+            child: _isTableMode ? _buildTableView() : _buildTextView(),
+          ),
+        ],
+      )
     );
   }
 
   Widget _buildToolbar() {
     return Container(
       height: 40,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: Color(0xFF3E3E3E))),
       ),
@@ -125,7 +127,7 @@ class _RequestHeadersViewState extends State<RequestHeadersView> {
         children: [
           Text(
             '请求头列表',
-            style: TextStyle(color: Colors.grey[400], fontSize: 13),
+            style: TextStyle(color: Colors.grey[400], fontSize: 12),
           ),
           const Spacer(),
           if (!_isTableMode) ...[

@@ -116,20 +116,22 @@ class _RequestRawViewState extends State<RequestRawView> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _buildToolbar(),
-        Expanded(
-          child: _isTextTab ? _buildTextContent() : _buildHexContent(),
-        ),
-      ],
+    return Container(
+      padding: EdgeInsetsGeometry.symmetric(horizontal: 16),
+      child:Column(
+        children: [
+          _buildToolbar(),
+          Expanded(
+            child: _isTextTab ? _buildTextContent() : _buildHexContent(),
+          ),
+        ],
+      )
     );
   }
 
   Widget _buildToolbar() {
     return Container(
       height: 40,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: Color(0xFF3E3E3E))),
       ),
