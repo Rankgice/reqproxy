@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:reqproxy/presentation/widgets/top_menu_bar.dart';
 
 class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   const CustomAppBar({super.key});
@@ -74,12 +75,7 @@ class _CustomAppBarState extends State<CustomAppBar> with WindowListener {
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Row(
         children: [
-          TextButton(onPressed: () {}, child: const Text('文件')),
-          TextButton(onPressed: () {}, child: const Text('工具')),
-          TextButton(onPressed: () {}, child: const Text('视图')),
-          TextButton(onPressed: () {}, child: const Text('代理')),
-          TextButton(onPressed: () {}, child: const Text('证书')),
-          TextButton(onPressed: () {}, child: const Text('帮助')),
+          const Expanded(child: TopMenuBar()),
           const Spacer(),
           _buildWindowControls(context),
         ],
