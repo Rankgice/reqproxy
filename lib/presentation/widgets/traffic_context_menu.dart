@@ -1,547 +1,235 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:reqproxy/core/models/traffic_item.dart';
-import 'package:reqproxy/presentation/theme/reqable_menu_theme.dart';
+import 'package:reqproxy/presentation/widgets/reqable_custom_menu.dart';
 
-class TrafficContextMenu extends StatefulWidget {
+class TrafficContextMenu extends StatelessWidget {
   final List<TrafficItem> selectedItems;
   final Function(List<TrafficItem>) onDelete;
+  final VoidCallback? onMenuClosed;
 
   const TrafficContextMenu({
     super.key,
     required this.selectedItems,
     required this.onDelete,
+    this.onMenuClosed,
   });
-
-  @override
-  State<TrafficContextMenu> createState() => _TrafficContextMenuState();
-}
-
-class _TrafficContextMenuState extends State<TrafficContextMenu> {
-  OverlayEntry? _submenuEntry;
-  final LayerLink _layerLink = LayerLink();
 
   void _copy(String text) {
     Clipboard.setData(ClipboardData(text: text));
-    _closeSubmenu();
-  }
-
-  void _closeSubmenu() {
-    _submenuEntry?.remove();
-    _submenuEntry = null;
-  }
-
-  void _openSubmenu(BuildContext itemContext, List<Widget> items) {
-    _closeSubmenu();
-
-    final RenderBox renderBox = itemContext.findRenderObject() as RenderBox;
-    final Offset offset = renderBox.localToGlobal(Offset.zero);
-    final Size size = renderBox.size;
-    final Rect parentRect = offset & size;
-    final Size screenSize = MediaQuery.of(context).size;
-
-    _submenuEntry = OverlayEntry(
-      builder: (context) => Stack(
-        children: [
-          // Submenu Layout
-          CustomSingleChildLayout(
-            delegate: _SubmenuLayoutDelegate(
-              parentRect: parentRect,
-              screenSize: screenSize,
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: Container(
-                constraints: const BoxConstraints(maxWidth: 180),
-                decoration: BoxDecoration(
-                  color: ReqableMenuTheme.backgroundColor,
-                  borderRadius: BorderRadius.circular(ReqableMenuTheme.borderRadius),
-                  boxShadow: ReqableMenuTheme.shadow,
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: items,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    Overlay.of(context).insert(_submenuEntry!);
-  }
-
-  @override
-  void dispose() {
-    _closeSubmenu();
-    super.dispose();
+    onMenuClosed?.call();
   }
 
   @override
   Widget build(BuildContext context) {
-    final firstItem = widget.selectedItems.isNotEmpty ? widget.selectedItems.first : null;
+    final firstItem = selectedItems.isNotEmpty ? selectedItems.first : null;
     final bool canCopy = firstItem != null;
 
-    return CompositedTransformTarget(
-      link: _layerLink,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 200),
-        child: Container(
-          decoration: BoxDecoration(
-            color: ReqableMenuTheme.backgroundColor,
-            borderRadius: BorderRadius.circular(ReqableMenuTheme.borderRadius),
-            boxShadow: ReqableMenuTheme.shadow,
-          ),
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // 复制cURL
-                _CustomMenuItem(
-                  label: '复制cURL',
-                  shortcut: 'Ctrl+Shift+C',
-                  onPressed: !canCopy ? null : () => _copy('curl "${firstItem!.url}"'),
-                  onHover: (_) => _closeSubmenu(),
-                ),
-                // 复制 >
-                _CustomMenuItem(
-                  label: '复制',
-                  hasSubmenu: true,
-                  onHover: (ctx) => !canCopy ? _closeSubmenu() : _openSubmenu(ctx, [
-                    _SubmenuItem(label: 'URL', shortcut: 'Ctrl+C', onPressed: () => _copy(firstItem!.url)),
-                    _SubmenuItem(label: '域名', onPressed: () => _copy(firstItem!.uri.host)),
-                    _SubmenuItem(label: '路径', onPressed: () => _copy(firstItem!.uri.path)),
-                    const _SubmenuDivider(),
-                    _SubmenuItem(label: '服务器IP', onPressed: () => _copy(firstItem!.serverIp)),
-                    _SubmenuItem(label: '客户端IP', onPressed: () => _copy(firstItem!.clientIp)),
-                    _SubmenuItem(label: '服务器地址', onPressed: () {}),
-                    _SubmenuItem(label: '客户端地址', onPressed: () {}),
-                    const _SubmenuDivider(),
-                    _SubmenuItem(label: '行', onPressed: () {}),
-                    const _SubmenuDivider(),
-                    _SubmenuItem(label: '备注', onPressed: () {}),
-                  ]),
-                ),
-                // 选择 >
-                _CustomMenuItem(
-                  label: '选择',
-                  hasSubmenu: true,
-                  onHover: (ctx) => _openSubmenu(ctx, [
-                    _SubmenuItem(label: '全选', shortcut: 'Ctrl+A', onPressed: () {}),
-                    _SubmenuItem(label: '反选', shortcut: 'Ctrl+Shift+I', onPressed: () {}),
-                    const _SubmenuDivider(),
-                    _SubmenuItem(label: '相同域名', onPressed: () {}),
-                    _SubmenuItem(label: '相同路径', onPressed: () {}),
-                    _SubmenuItem(label: '相同URL', onPressed: () {}),
-                    const _SubmenuDivider(),
-                    _SubmenuItem(label: '复用连接', onPressed: () {}),
-                    const _SubmenuDivider(),
-                    _SubmenuItem(label: '分部内容', onPressed: () {}),
-                  ]),
-                ),
-                // 查看 >
-                _CustomMenuItem(
-                  label: '查看',
-                  hasSubmenu: true,
-                  onHover: (ctx) => _openSubmenu(ctx, [
-                    _SubmenuItem(label: '新窗口打开', shortcut: 'Ctrl+N', onPressed: () {}),
-                    _SubmenuItem(label: '浏览器打开', onPressed: () {}),
-                    const _SubmenuDivider(),
-                    _SubmenuItem(label: 'URL', shortcut: 'Ctrl+U', onPressed: () {}),
-                    _SubmenuItem(label: '生成代码', shortcut: 'Alt+S', onPressed: () {}),
-                    _SubmenuItem(label: '二维码', shortcut: 'Alt+U', onPressed: () {}),
-                  ]),
-                ),
-                // 对比 >
-                _CustomMenuItem(
-                  label: '对比',
-                  hasSubmenu: true,
-                  onHover: (ctx) => _openSubmenu(ctx, [
-                    _SubmenuItem(label: '对比两者', shortcut: 'Ctrl+Y', onPressed: () {}),
-                    _SubmenuItem(label: '添加到对比池', shortcut: 'Ctrl+Shift+Y', onPressed: () {}),
-                    const _SubmenuDivider(),
-                  ]),
-                ),
-                // 导出 >
-                _CustomMenuItem(
-                  label: '导出',
-                  hasSubmenu: true,
-                  onHover: (ctx) => _openSubmenu(ctx, [
-                    _SubmenuItem(label: '请求', onPressed: () {}),
-                    _SubmenuItem(label: '请求(原始)', onPressed: () {}),
-                    _SubmenuItem(label: '请求头', onPressed: () {}),
-                    _SubmenuItem(label: '请求体', onPressed: () {}),
-                    _SubmenuItem(label: '请求体(原始)', onPressed: () {}),
-                    const _SubmenuDivider(),
-                    _SubmenuItem(label: '响应', onPressed: () {}),
-                    _SubmenuItem(label: '响应(原始)', onPressed: () {}),
-                    _SubmenuItem(label: '响应头', onPressed: () {}),
-                    _SubmenuItem(label: '响应体', onPressed: () {}),
-                    _SubmenuItem(label: '响应体(原始)', onPressed: () {}),
-                    const _SubmenuDivider(),
-                    _SubmenuItem(label: '请求 + 响应', onPressed: () {}),
-                    _SubmenuItem(label: '请求(原始) + 响应(原始)', onPressed: () {}),
-                    const _SubmenuDivider(),
-                    _SubmenuItem(label: '会话', onPressed: () {}),
-                    _SubmenuItem(label: '会话(原始)', onPressed: () {}),
-                    const _SubmenuDivider(),
-                    _SubmenuItem(label: '分部内容', onPressed: () {}),
-                    const _SubmenuDivider(),
-                    _SubmenuItem(label: '结构', onPressed: () {}),
-                    _SubmenuItem(label: 'CSV', onPressed: () {}),
-                    _SubmenuItem(label: 'HAR', onPressed: () {}),
-                  ]),
-                ),
-                // 编辑
-                _CustomMenuItem(
-                  label: '编辑',
-                  shortcut: 'Ctrl+Shift+Enter',
-                  onPressed: () {},
-                  onHover: (_) => _closeSubmenu(),
-                ),
-                // 重发 >
-                _CustomMenuItem(
-                  label: '重发',
-                  hasSubmenu: true,
-                  onHover: (ctx) => _openSubmenu(ctx, [
-                    _SubmenuItem(label: '1 次', shortcut: 'Ctrl+Enter', onPressed: () {}),
-                    _SubmenuItem(label: '2 次', onPressed: () {}),
-                    _SubmenuItem(label: '3 次', onPressed: () {}),
-                    _SubmenuItem(label: '4 次', onPressed: () {}),
-                    _SubmenuItem(label: '5 次', onPressed: () {}),
-                    _SubmenuItem(label: '自定义', onPressed: () {}),
-                  ]),
-                ),
-                // 添加备注
-                _CustomMenuItem(
-                  label: '添加备注',
-                  onPressed: () {},
-                  onHover: (_) => _closeSubmenu(),
-                ),
-                // SSL代理 >
-                _CustomMenuItem(
-                  label: 'SSL代理',
-                  hasSubmenu: true,
-                  onHover: (ctx) => _openSubmenu(ctx, [
-                    _SubmenuItem(label: '新建', onPressed: () {}),
-                  ]),
-                ),
-                // 镜像
-                _CustomMenuItem(
-                  label: '镜像',
-                  onPressed: () {},
-                  onHover: (_) => _closeSubmenu(),
-                ),
-                // 网关 >
-                _CustomMenuItem(
-                  label: '网关',
-                  hasSubmenu: true,
-                  onHover: (ctx) => _openSubmenu(ctx, [
-                    _SubmenuItem(label: '仅允许', onPressed: () {}),
-                    _SubmenuItem(label: '静默', onPressed: () {}),
-                    _SubmenuItem(label: '屏蔽请求', onPressed: () {}),
-                    _SubmenuItem(label: '屏蔽响应', onPressed: () {}),
-                    _SubmenuItem(label: '挂起请求', onPressed: () {}),
-                    _SubmenuItem(label: '挂起响应', onPressed: () {}),
-                  ]),
-                ),
-                // 脚本
-                _CustomMenuItem(
-                  label: '脚本',
-                  onPressed: () {},
-                  onHover: (_) => _closeSubmenu(),
-                ),
-                // 重写 >
-                _CustomMenuItem(
-                  label: '重写',
-                  hasSubmenu: true,
-                  onHover: (ctx) => _openSubmenu(ctx, [
-                    _SubmenuItem(label: '重定向URL', onPressed: () {}),
-                    _SubmenuItem(label: '替换请求', onPressed: () {}),
-                    _SubmenuItem(label: '替换响应', onPressed: () {}),
-                    _SubmenuItem(label: '修改请求', onPressed: () {}),
-                    _SubmenuItem(label: '修改响应', onPressed: () {}),
-                  ]),
-                ),
-                // 断点
-                _CustomMenuItem(
-                  label: '断点',
-                  onPressed: () {},
-                  onHover: (_) => _closeSubmenu(),
-                ),
-                const _MenuDivider(),
-                // 高亮 >
-                _CustomMenuItem(
-                  label: '高亮',
-                  hasSubmenu: true,
-                  onHover: (ctx) => _openSubmenu(ctx, [
-                    _SubmenuItem(label: '红色', shortcut: 'Alt+1', onPressed: () {}),
-                    _SubmenuItem(label: '黄色', shortcut: 'Alt+2', onPressed: () {}),
-                    _SubmenuItem(label: '绿色', shortcut: 'Alt+3', onPressed: () {}),
-                    _SubmenuItem(label: '蓝色', shortcut: 'Alt+4', onPressed: () {}),
-                    _SubmenuItem(label: '青色', shortcut: 'Alt+5', onPressed: () {}),
-                    _SubmenuItem(label: '划线', shortcut: 'Alt+-', onPressed: () {}),
-                    const _SubmenuDivider(),
-                    _SubmenuItem(label: '标记已阅', isChecked: true, onPressed: () {}),
-                    const _SubmenuDivider(),
-                    _SubmenuItem(label: '重置', shortcut: 'Alt+0', onPressed: () {}),
-                    _SubmenuItem(label: '自动', onPressed: () {}),
-                  ]),
-                ),
-                // 书签 >
-                _CustomMenuItem(
-                  label: '书签',
-                  hasSubmenu: true,
-                  onHover: (ctx) => _openSubmenu(ctx, [
-                    _SubmenuItem(label: '添加域名', onPressed: () {}),
-                    _SubmenuItem(label: '添加路径', onPressed: () {}),
-                  ]),
-                ),
-                // 添加到 >
-                _CustomMenuItem(
-                  label: '添加到',
-                  hasSubmenu: true,
-                  onHover: (ctx) => _openSubmenu(ctx, [
-                    _SubmenuItem(label: 'API集合', shortcut: 'Ctrl+I', onPressed: () {}),
-                    _SubmenuItem(label: '新会话', onPressed: () {}),
-                    _SubmenuItem(label: '我的收藏', onPressed: () {}),
-                  ]),
-                ),
-                // 删除
-                _CustomMenuItem(
-                  label: '删除',
-                  shortcut: 'Delete',
-                  onPressed: widget.selectedItems.isEmpty
-                      ? null
-                      : () => widget.onDelete(widget.selectedItems),
-                  onHover: (_) => _closeSubmenu(),
-                ),
-              ],
-            ),
-          ),
-        ),
+    final List<ReqableCustomMenuItem> items = [
+      // 复制cURL
+      ReqableCustomMenuItem(
+        label: '复制cURL',
+        shortcut: 'Ctrl+Shift+C',
+        onPressed: !canCopy ? null : () => _copy('curl "${firstItem!.url}"'),
       ),
-    );
-  }
-}
-
-class _SubmenuLayoutDelegate extends SingleChildLayoutDelegate {
-  final Rect parentRect;
-  final Size screenSize;
-
-  _SubmenuLayoutDelegate({
-    required this.parentRect,
-    required this.screenSize,
-  });
-
-  @override
-  BoxConstraints getConstraintsForChild(BoxConstraints constraints) {
-    return BoxConstraints.loose(screenSize);
-  }
-
-  @override
-  Offset getPositionForChild(Size size, Size childSize) {
-    double dx = parentRect.right;
-    double dy = parentRect.top;
-
-    // Horizontal check: if not enough space on right, try left
-    if (dx + childSize.width > screenSize.width) {
-      dx = parentRect.left - childSize.width;
-    }
-
-    // Vertical check: if not enough space below, shift up
-    if (dy + childSize.height > screenSize.height) {
-      dy = screenSize.height - childSize.height;
-    }
-
-    // Safety check
-    if (dx < 0) dx = 0;
-    if (dy < 0) dy = 0;
-
-    return Offset(dx, dy);
-  }
-
-  @override
-  bool shouldRelayout(_SubmenuLayoutDelegate oldDelegate) {
-    return parentRect != oldDelegate.parentRect || screenSize != oldDelegate.screenSize;
-  }
-}
-
-class _CustomMenuItem extends StatefulWidget {
-  final String label;
-  final VoidCallback? onPressed;
-  final Function(BuildContext)? onHover;
-  final String? shortcut;
-  final bool hasSubmenu;
-
-  const _CustomMenuItem({
-    required this.label,
-    this.onPressed,
-    this.onHover,
-    this.shortcut,
-    this.hasSubmenu = false,
-  });
-
-  @override
-  State<_CustomMenuItem> createState() => _CustomMenuItemState();
-}
-
-class _CustomMenuItemState extends State<_CustomMenuItem> {
-  bool _isHovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final bool isDisabled = widget.onPressed == null && widget.onHover == null;
-
-    return MouseRegion(
-      onEnter: (_) {
-        if (!isDisabled) {
-          setState(() => _isHovered = true);
-          if (widget.onHover != null) {
-            widget.onHover!(context);
-          }
-        }
-      },
-      onExit: (_) {
-        if (!isDisabled) setState(() => _isHovered = false);
-      },
-      child: GestureDetector(
-        onTap: () {
-          if (isDisabled) return;
-          if (widget.onPressed != null) {
-            widget.onPressed!();
-          }
-        },
-        child: Container(
-          color: _isHovered ? ReqableMenuTheme.hoverColor : Colors.transparent,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  widget.label,
-                  style: TextStyle(
-                    color: isDisabled ? ReqableMenuTheme.disabledTextColor : ReqableMenuTheme.textColor,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-              if (widget.shortcut != null)
-                Padding(
-                  padding: const EdgeInsets.only(left: 16),
-                  child: Text(
-                    widget.shortcut!,
-                    style: TextStyle(
-                      color: isDisabled ? ReqableMenuTheme.disabledTextColor : (_isHovered ? ReqableMenuTheme.textColor : ReqableMenuTheme.disabledTextColor),
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              if (widget.hasSubmenu)
-                Padding(
-                  padding: const EdgeInsets.only(left: 8),
-                  child: Icon(
-                    Icons.chevron_right,
-                    size: 16,
-                    color: isDisabled ? ReqableMenuTheme.disabledTextColor : ReqableMenuTheme.textColor,
-                  ),
-                ),
-            ],
-          ),
-        ),
+      // 复制 >
+      ReqableCustomMenuItem(
+        label: '复制',
+        subItems: [
+          ReqableCustomMenuItem(label: 'URL', shortcut: 'Ctrl+C', onPressed: !canCopy ? null : () => _copy(firstItem!.url)),
+          ReqableCustomMenuItem(label: '域名', onPressed: !canCopy ? null : () => _copy(firstItem!.uri.host)),
+          ReqableCustomMenuItem(label: '路径', onPressed: !canCopy ? null : () => _copy(firstItem!.uri.path)),
+          const ReqableCustomMenuItem.divider(),
+          ReqableCustomMenuItem(label: '服务器IP', onPressed: !canCopy ? null : () => _copy(firstItem!.serverIp)),
+          ReqableCustomMenuItem(label: '客户端IP', onPressed: !canCopy ? null : () => _copy(firstItem!.clientIp)),
+          ReqableCustomMenuItem(label: '服务器地址', onPressed: () {}),
+          ReqableCustomMenuItem(label: '客户端地址', onPressed: () {}),
+          const ReqableCustomMenuItem.divider(),
+          ReqableCustomMenuItem(label: '行', onPressed: () {}),
+          const ReqableCustomMenuItem.divider(),
+          ReqableCustomMenuItem(label: '备注', onPressed: () {}),
+        ],
       ),
-    );
-  }
-}
-
-class _MenuDivider extends StatelessWidget {
-  const _MenuDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Divider(
-      height: 1,
-      thickness: 1,
-      color: ReqableMenuTheme.dividerColor,
-    );
-  }
-}
-
-class _SubmenuItem extends StatefulWidget {
-  final String label;
-  final VoidCallback onPressed;
-  final String? shortcut;
-  final bool isChecked;
-
-  const _SubmenuItem({
-    required this.label,
-    required this.onPressed,
-    this.shortcut,
-    this.isChecked = false,
-  });
-
-  @override
-  State<_SubmenuItem> createState() => _SubmenuItemState();
-}
-
-class _SubmenuItemState extends State<_SubmenuItem> {
-  bool _isHovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: GestureDetector(
-        onTap: widget.onPressed,
-        child: Container(
-          color: _isHovered ? ReqableMenuTheme.hoverColor : Colors.transparent,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-          child: Row(
-            children: [
-              if (widget.isChecked)
-                const Padding(
-                  padding: EdgeInsets.only(right: 8),
-                  child: Icon(Icons.check, size: 16, color: ReqableMenuTheme.textColor),
-                )
-              else
-                const SizedBox(width: 24), // Placeholder for check icon
-              Expanded(
-                child: Text(
-                  widget.label,
-                  style: const TextStyle(fontSize: 13, color: ReqableMenuTheme.textColor),
-                ),
-              ),
-              if (widget.shortcut != null)
-                Text(
-                  widget.shortcut!,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: _isHovered ? ReqableMenuTheme.textColor : ReqableMenuTheme.disabledTextColor,
-                  ),
-                ),
-            ],
-          ),
-        ),
+      // 选择 >
+      ReqableCustomMenuItem(
+        label: '选择',
+        subItems: [
+          ReqableCustomMenuItem(label: '全选', shortcut: 'Ctrl+A', onPressed: () {}),
+          ReqableCustomMenuItem(label: '反选', shortcut: 'Ctrl+Shift+I', onPressed: () {}),
+          const ReqableCustomMenuItem.divider(),
+          ReqableCustomMenuItem(label: '相同域名', onPressed: () {}),
+          ReqableCustomMenuItem(label: '相同路径', onPressed: () {}),
+          ReqableCustomMenuItem(label: '相同URL', onPressed: () {}),
+          const ReqableCustomMenuItem.divider(),
+          ReqableCustomMenuItem(label: '复用连接', onPressed: () {}),
+          const ReqableCustomMenuItem.divider(),
+          ReqableCustomMenuItem(label: '分部内容', onPressed: () {}),
+        ],
       ),
-    );
-  }
-}
+      // 查看 >
+      ReqableCustomMenuItem(
+        label: '查看',
+        subItems: [
+          ReqableCustomMenuItem(label: '新窗口打开', shortcut: 'Ctrl+N', onPressed: () {}),
+          ReqableCustomMenuItem(label: '浏览器打开', onPressed: () {}),
+          const ReqableCustomMenuItem.divider(),
+          ReqableCustomMenuItem(label: 'URL', shortcut: 'Ctrl+U', onPressed: () {}),
+          ReqableCustomMenuItem(label: '生成代码', shortcut: 'Alt+S', onPressed: () {}),
+          ReqableCustomMenuItem(label: '二维码', shortcut: 'Alt+U', onPressed: () {}),
+        ],
+      ),
+      // 对比 >
+      ReqableCustomMenuItem(
+        label: '对比',
+        subItems: [
+          ReqableCustomMenuItem(label: '对比两者', shortcut: 'Ctrl+Y', onPressed: () {}),
+          ReqableCustomMenuItem(label: '添加到对比池', shortcut: 'Ctrl+Shift+Y', onPressed: () {}),
+          const ReqableCustomMenuItem.divider(),
+        ],
+      ),
+      // 导出 >
+      ReqableCustomMenuItem(
+        label: '导出',
+        subItems: [
+          ReqableCustomMenuItem(label: '请求', onPressed: () {}),
+          ReqableCustomMenuItem(label: '请求(原始)', onPressed: () {}),
+          ReqableCustomMenuItem(label: '请求头', onPressed: () {}),
+          ReqableCustomMenuItem(label: '请求体', onPressed: () {}),
+          ReqableCustomMenuItem(label: '请求体(原始)', onPressed: () {}),
+          const ReqableCustomMenuItem.divider(),
+          ReqableCustomMenuItem(label: '响应', onPressed: () {}),
+          ReqableCustomMenuItem(label: '响应(原始)', onPressed: () {}),
+          ReqableCustomMenuItem(label: '响应头', onPressed: () {}),
+          ReqableCustomMenuItem(label: '响应体', onPressed: () {}),
+          ReqableCustomMenuItem(label: '响应体(原始)', onPressed: () {}),
+          const ReqableCustomMenuItem.divider(),
+          ReqableCustomMenuItem(label: '请求 + 响应', onPressed: () {}),
+          ReqableCustomMenuItem(label: '请求(原始) + 响应(原始)', onPressed: () {}),
+          const ReqableCustomMenuItem.divider(),
+          ReqableCustomMenuItem(label: '会话', onPressed: () {}),
+          ReqableCustomMenuItem(label: '会话(原始)', onPressed: () {}),
+          const ReqableCustomMenuItem.divider(),
+          ReqableCustomMenuItem(label: '分部内容', onPressed: () {}),
+          const ReqableCustomMenuItem.divider(),
+          ReqableCustomMenuItem(label: '结构', onPressed: () {}),
+          ReqableCustomMenuItem(label: 'CSV', onPressed: () {}),
+          ReqableCustomMenuItem(label: 'HAR', onPressed: () {}),
+        ],
+      ),
+      // 编辑
+      ReqableCustomMenuItem(
+        label: '编辑',
+        shortcut: 'Ctrl+Shift+Enter',
+        onPressed: () {},
+      ),
+      // 重发 >
+      ReqableCustomMenuItem(
+        label: '重发',
+        subItems: [
+          ReqableCustomMenuItem(label: '1 次', shortcut: 'Ctrl+Enter', onPressed: () {}),
+          ReqableCustomMenuItem(label: '2 次', onPressed: () {}),
+          ReqableCustomMenuItem(label: '3 次', onPressed: () {}),
+          ReqableCustomMenuItem(label: '4 次', onPressed: () {}),
+          ReqableCustomMenuItem(label: '5 次', onPressed: () {}),
+          ReqableCustomMenuItem(label: '自定义', onPressed: () {}),
+        ],
+      ),
+      // 添加备注
+      ReqableCustomMenuItem(
+        label: '添加备注',
+        onPressed: () {},
+      ),
+      // SSL代理 >
+      ReqableCustomMenuItem(
+        label: 'SSL代理',
+        subItems: [
+          ReqableCustomMenuItem(label: '新建', onPressed: () {}),
+        ],
+      ),
+      // 镜像
+      ReqableCustomMenuItem(
+        label: '镜像',
+        onPressed: () {},
+      ),
+      // 网关 >
+      ReqableCustomMenuItem(
+        label: '网关',
+        subItems: [
+          ReqableCustomMenuItem(label: '仅允许', onPressed: () {}),
+          ReqableCustomMenuItem(label: '静默', onPressed: () {}),
+          ReqableCustomMenuItem(label: '屏蔽请求', onPressed: () {}),
+          ReqableCustomMenuItem(label: '屏蔽响应', onPressed: () {}),
+          ReqableCustomMenuItem(label: '挂起请求', onPressed: () {}),
+          ReqableCustomMenuItem(label: '挂起响应', onPressed: () {}),
+        ],
+      ),
+      // 脚本
+      ReqableCustomMenuItem(
+        label: '脚本',
+        onPressed: () {},
+      ),
+      // 重写 >
+      ReqableCustomMenuItem(
+        label: '重写',
+        subItems: [
+          ReqableCustomMenuItem(label: '重定向URL', onPressed: () {}),
+          ReqableCustomMenuItem(label: '替换请求', onPressed: () {}),
+          ReqableCustomMenuItem(label: '替换响应', onPressed: () {}),
+          ReqableCustomMenuItem(label: '修改请求', onPressed: () {}),
+          ReqableCustomMenuItem(label: '修改响应', onPressed: () {}),
+        ],
+      ),
+      // 断点
+      ReqableCustomMenuItem(
+        label: '断点',
+        onPressed: () {},
+      ),
+      const ReqableCustomMenuItem.divider(),
+      // 高亮 >
+      ReqableCustomMenuItem(
+        label: '高亮',
+        subItems: [
+          ReqableCustomMenuItem(label: '红色', shortcut: 'Alt+1', onPressed: () {}),
+          ReqableCustomMenuItem(label: '黄色', shortcut: 'Alt+2', onPressed: () {}),
+          ReqableCustomMenuItem(label: '绿色', shortcut: 'Alt+3', onPressed: () {}),
+          ReqableCustomMenuItem(label: '蓝色', shortcut: 'Alt+4', onPressed: () {}),
+          ReqableCustomMenuItem(label: '青色', shortcut: 'Alt+5', onPressed: () {}),
+          ReqableCustomMenuItem(label: '划线', shortcut: 'Alt+-', onPressed: () {}),
+          const ReqableCustomMenuItem.divider(),
+          ReqableCustomMenuItem(label: '标记已阅', isChecked: true, onPressed: () {}),
+          const ReqableCustomMenuItem.divider(),
+          ReqableCustomMenuItem(label: '重置', shortcut: 'Alt+0', onPressed: () {}),
+          ReqableCustomMenuItem(label: '自动', onPressed: () {}),
+        ],
+      ),
+      // 书签 >
+      ReqableCustomMenuItem(
+        label: '书签',
+        subItems: [
+          ReqableCustomMenuItem(label: '添加域名', onPressed: () {}),
+          ReqableCustomMenuItem(label: '添加路径', onPressed: () {}),
+        ],
+      ),
+      // 添加到 >
+      ReqableCustomMenuItem(
+        label: '添加到',
+        subItems: [
+          ReqableCustomMenuItem(label: 'API集合', shortcut: 'Ctrl+I', onPressed: () {}),
+          ReqableCustomMenuItem(label: '新会话', onPressed: () {}),
+          ReqableCustomMenuItem(label: '我的收藏', onPressed: () {}),
+        ],
+      ),
+      // 删除
+      ReqableCustomMenuItem(
+        label: '删除',
+        shortcut: 'Delete',
+        onPressed: selectedItems.isEmpty ? null : () => onDelete(selectedItems),
+      ),
+    ];
 
-class _SubmenuDivider extends StatelessWidget {
-  const _SubmenuDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Divider(
-      height: 1,
-      thickness: 1,
-      color: ReqableMenuTheme.dividerColor,
+    return ReqableCustomMenu(
+      items: items,
+      onMenuClosed: onMenuClosed,
     );
   }
 }
