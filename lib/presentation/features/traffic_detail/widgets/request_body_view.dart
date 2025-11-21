@@ -158,7 +158,7 @@ class _RequestBodyViewState extends State<RequestBodyView> with TickerProviderSt
       width: 240, // Adjust width as needed
       child: TabBar(
         controller: _tabController,
-        isScrollable: true,
+        isScrollable: false,
         labelPadding: const EdgeInsets.symmetric(horizontal: 12),
         indicatorColor: Colors.orange,
         indicatorSize: TabBarIndicatorSize.label,

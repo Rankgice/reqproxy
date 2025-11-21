@@ -107,7 +107,10 @@ class _ResponseRawViewState extends State<ResponseRawView> {
       children: [
         _buildToolbar(),
         Expanded(
-          child: _isTextTab ? _buildTextContent() : _buildHexContent(),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: _isTextTab ? _buildTextContent() : _buildHexContent(),
+          )
         ),
       ],
     );
@@ -116,7 +119,7 @@ class _ResponseRawViewState extends State<ResponseRawView> {
   Widget _buildToolbar() {
     return Container(
       height: 40,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: Color(0xFF3E3E3E))),
       ),
