@@ -119,17 +119,63 @@ class TrafficDetailView extends StatelessWidget {
         children: [
           Container(
             height: 49,
-            child: const TabBar(
-              tabs: [
-                Tab(text: '原始'),
-                Tab(text: '响应头'),
-                Tab(text: '响应体'),
+            child: Row(
+              children: [
+                const Expanded(
+                  child: TabBar(
+                    tabs: [
+                      Tab(text: '原始'),
+                      Tab(text: '响应头'),
+                      Tab(text: '响应体'),
+                    ],
+                    isScrollable: true,
+                    tabAlignment: TabAlignment.start,
+                    indicatorColor: Colors.yellow,
+                    labelColor: Color(0xFFDFDFE0),
+                    unselectedLabelColor: Colors.white70,
+                  ),
+                ),
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF64D16F),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    trafficItem.protocol,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF64D16F),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    trafficItem.statusCode.toString(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.more_horiz, color: Colors.grey),
+                  onPressed: () {}, // Placeholder
+                  tooltip: 'More',
+                  constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                  padding: EdgeInsets.zero,
+                ),
+                const SizedBox(width: 8),
               ],
-               isScrollable: true,
-              tabAlignment: TabAlignment.start,
-              indicatorColor: Colors.yellow,
-              labelColor: Color(0xFFDFDFE0),
-              unselectedLabelColor: Colors.white70,
             ),
           ),
           Expanded(
