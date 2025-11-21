@@ -63,7 +63,7 @@ class TrafficDetailView extends StatelessWidget {
                 ),
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 8),
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
                   decoration: BoxDecoration(
                     color: const Color(0xFF64D16F),
                     borderRadius: BorderRadius.circular(12),
@@ -73,7 +73,7 @@ class TrafficDetailView extends StatelessWidget {
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 12,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
@@ -81,14 +81,14 @@ class TrafficDetailView extends StatelessWidget {
                   icon: const Icon(Icons.more_horiz, color: Colors.grey),
                   onPressed: () {}, // Placeholder
                   tooltip: 'More',
-                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
                   padding: EdgeInsets.zero,
                 ),
                 IconButton(
                   icon: const Icon(Icons.close, color: Colors.grey),
                   onPressed: onClose,
                   tooltip: 'Close',
-                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
                   padding: EdgeInsets.zero,
                 ),
                 const SizedBox(width: 8),
